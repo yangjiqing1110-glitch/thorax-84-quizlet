@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thorax &amp; Respiratory System · 理论题抽认卡</title>
+<style>
+  :root{
+    --bg:#eef2f8;
+    --card:#ffffff;
+    --ink:#13233b;
+    --muted:#5b6b82;
+    --blue:#2563eb;
+    --blue-soft:#e8f0fe;
+    --teal:#0f766e;
+    --teal-soft:#e6f5f2;
+    --line:#dde5f0;
+    --shadow:0 18px 40px -18px rgba(19,35,59,.35), 0 4px 12px rgba(19,35,59,.06);
+    --radius:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #dfeaff 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:22px 18px 34px}
+  header.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  h1{font-size:clamp(19px,2.4vw,26px);margin:0 0 4px;letter-spacing:.2px}
+  .sub{margin:0;color:var(--muted);font-size:13.5px;line-height:1.6}
+  .brand{
+    display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
+    color:var(--blue);background:var(--blue-soft);padding:6px 12px;border-radius:999px;
+    letter-spacing:.6px;text-transform:uppercase;white-space:nowrap
+  }
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 14px}
+  .chip{
+    border:1px solid var(--line);background:#fff;color:var(--muted);
+    padding:7px 13px;border-radius:999px;font-size:13px;cursor:pointer;
+    transition:.18s;display:inline-flex;align-items:center;gap:6px;font-weight:600;
+  }
+  .chip:hover{border-color:#b9c9e2;color:var(--ink)}
+  .chip b{font-weight:700;color:#93a3bb}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .chip.on b{color:#9fb3d1}
+  .bar-row{display:flex;align-items:center;gap:12px;margin:6px 0 14px}
+  .bar{flex:1;height:6px;background:#dce5f2;border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2563eb,#0f766e);border-radius:99px;transition:width .3s ease}
+  .count{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  .stage{perspective:2200px;margin-top:6px}
+  .card{
+    position:relative;height:clamp(380px,calc(100vh - 362px),540px);
+    transform-style:preserve-3d;transition:transform .55s cubic-bezier(.2,.75,.25,1);
+    cursor:pointer;border-radius:var(--radius);
+  }
+  .card.flipped{transform:rotateY(180deg)}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    display:flex;flex-direction:column;padding:22px 26px 18px;
+    overflow-y:auto;border:1px solid #e6ecf5;
+  }
+  .face.front{border-top:5px solid var(--blue)}
+  .face.back{transform:rotateY(180deg);border-top:5px solid var(--teal)}
+  .meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .sec-tag{
+    font-size:11.5px;font-weight:700;letter-spacing:.5px;color:var(--blue);
+    background:var(--blue-soft);padding:5px 10px;border-radius:8px;white-space:nowrap
+  }
+  .back .sec-tag{color:var(--teal);background:var(--teal-soft)}
+  .num-tag{font-size:11.5px;font-weight:700;color:#93a3bb;letter-spacing:.4px;font-variant-numeric:tabular-nums}
+  .body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;padding:6px 0}
+  .face-label{font-size:11px;font-weight:800;letter-spacing:2px;color:#a9b7cc;margin-bottom:6px}
+  .en{font-size:clamp(19px,2.3vw,23px);line-height:1.42;font-weight:600;margin:0 0 10px;letter-spacing:.1px}
+  /* 逐词发音：每个词包一层可点击 span */
+  .w{border-radius:5px;cursor:pointer;padding:0 1px;margin:0 -1px;transition:background .12s,color .12s}
+  .w:hover{background:rgba(37,99,235,.10);color:#1d4ed8}
+  .w:active{background:rgba(37,99,235,.20)}
+  .w.playing{background:#fde68a;color:#92400e}
+  .back .w:hover{background:rgba(15,118,110,.13);color:#0f766e}
+  .back .w.playing{background:#fde68a;color:#92400e}
+  .back .en{font-size:clamp(16.5px,1.9vw,19px);font-weight:500;line-height:1.5;color:#16283f}
+  .zh{font-size:15px;line-height:1.7;color:var(--muted);margin:0 0 6px;font-weight:400}
+  .zh.pair{border-top:1px dashed var(--line);padding-top:12px;margin-top:12px}
+  .divider{height:1px;background:var(--line);margin:auto 0 0}
+  .tts-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:14px}
+  .tts{
+    border:1px solid var(--line);background:#f8fafd;color:var(--ink);
+    font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:10px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;transition:.15s;font-family:inherit
+  }
+  .tts:hover{background:#eef4fd;border-color:#c2d3ea}
+  .tts:active{transform:scale(.97)}
+  .tts svg{width:14px;height:14px;fill:currentColor;opacity:.75}
+  .back .tts{background:var(--teal-soft);border-color:#cfe9e4}
+  .back .tts:hover{background:#d8f0eb}
+  .hint{margin-top:10px;text-align:center;font-size:11.5px;color:#a9b7cc;letter-spacing:.3px}
+  .back .hint{color:#9ec2bb}
+
+  .controls{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap}
+  .btn{
+    border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;
+    height:46px;min-width:46px;padding:0 16px;border-radius:14px;font-size:14px;font-weight:600;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.16s;font-family:inherit;
+    box-shadow:0 2px 6px rgba(19,35,59,.05)
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(19,35,59,.10)}
+  .btn:active{transform:none}
+  .btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+  .btn.primary:hover{background:#1d3252}
+  .btn svg{width:16px;height:16px;fill:currentColor}
+  .ghost{background:transparent;border-style:dashed;color:var(--muted)}
+  .footer{margin-top:20px;font-size:12px;color:#8a9ab3;line-height:1.8;text-align:center}
+  .footer b{color:#64748b;font-weight:600}
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
+    background:#13233b;color:#fff;font-size:13px;padding:10px 18px;border-radius:12px;
+    opacity:0;pointer-events:none;transition:.25s;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.25)
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .speaking{box-shadow:0 0 0 3px rgba(37,99,235,.25) !important}
+  @media (max-width:640px){
+    .wrap{padding:18px 12px 48px}
+    .face{padding:18px 18px 16px}
+    .card{height:clamp(440px,66vh,560px)}
+    .btn span{display:none}
+    .btn{padding:0 14px}
+    .controls{gap:8px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>胸廓与呼吸系统 · 理论题抽认卡</h1>
+      <p class="sub">Theoretical questions of the 3rd MTO: thorax and respiratory system · 84 题 · 正面问题，背面答案，中英对照，可发音</p>
+    </div>
+    <span class="brand">Anatomy · Quizlet Style</span>
+  </header>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="bar-row">
+    <div class="bar"><i id="bar"></i></div>
+    <div class="count" id="count">1 / 84</div>
+  </div>
+
+  <div class="stage">
+    <div class="card" id="card">
+      <section class="face front">
+        <div class="meta"><span class="sec-tag" id="fSec"></span><span class="num-tag" id="fNum"></span></div>
+        <div class="body">
+          <div class="face-label">QUESTION · 问题</div>
+          <p class="en" id="fEn"></p>
+          <p class="zh" id="fZh"></p>
+        </div>
+        <div class="tts-row">
+          <button class="tts" data-lang="en" data-slot="front"><svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>英文发音</button>
+          <button class="tts" data-lang="zh" data-slot="front"><svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>中文发音</button>
+        </div>
+        <div class="hint">点击卡片翻面 · 点任意单词单独发音</div>
+      </section>
+      <section class="face back">
+        <div class="meta"><span class="sec-tag" id="bSec"></span><span class="num-tag" id="bNum"></span></div>
+        <div class="body">
+          <div class="face-label">ANSWER · 答案</div>
+          <p class="en" id="bEn"></p>
+          <p class="zh" id="bZh"></p>
+        </div>
+        <div class="tts-row">
+          <button class="tts" data-lang="en" data-slot="back"><svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>英文发音</button>
+          <button class="tts" data-lang="zh" data-slot="back"><svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>中文发音</button>
+        </div>
+        <div class="hint">点击卡片翻回 · 点任意单词单独发音</div>
+      </section>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn ghost" id="prev" title="上一张 (←)">
+      <svg viewBox="0 0 24 24"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg><span>上一张</span>
+    </button>
+    <button class="btn primary" id="flipBtn">翻面</button>
+    <button class="btn" id="next" title="下一张 (→)"><span>下一张</span>
+      <svg viewBox="0 0 24 24"><path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4L13.2 12z"/></svg>
+    </button>
+    <button class="btn" id="shuffle" title="随机排序">
+      <svg viewBox="0 0 24 24"><path d="M17 3h4v4h-2V6.4l-3.6 3.6-1.4-1.4L17.6 5H17V3zM3 5h4.2l3.1 3.1-1.4 1.4L6.2 6.8H3V5zm14 16h-4v-2h.6l-3.6-3.6 1.4-1.4L15 16.6V15h2v6zM3 19h3.2l8.1-8.1 1.4 1.4L7.2 20.8H3V19z"/></svg><span>随机</span>
+    </button>
+    <button class="btn ghost" id="reset" title="回到第一张">
+      <svg viewBox="0 0 24 24"><path d="M12 5V2L8 6l4 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg><span>重置</span>
+    </button>
+  </div>
+
+  <p class="footer">
+    发音为 <b>Google 翻译</b> 语音，已内置为音频文件，点击即播（不跳转页面、不依赖实时接口）；点击任意单词 / 汉字也能单独发音。<br>
+    题目源自 <b>03.b_Theoretical questions - Thorax etc.pdf</b>，答案为精简答案＋中文翻译。
+  </p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ---------------- 数据：84 张卡片 ---------------- */
+const SECS = [
+  { id: 0, en: "All parts", zh: "全部", short: "" },
+  { id: 1, en: "Vertebral column & sacrum", zh: "脊柱与骶骨", short: "PART 1" },
+  { id: 2, en: "Sternum, ribs, thoracic wall & diaphragm", zh: "胸骨、肋、胸壁与膈", short: "PART 2" },
+  { id: 3, en: "Mediastinum", zh: "纵隔", short: "PART 3" },
+  { id: 4, en: "Lungs, pleura & bronchi", zh: "肺、胸膜与支气管", short: "PART 4" },
+  { id: 5, en: "Nose & paranasal sinuses", zh: "鼻与鼻旁窦", short: "PART 5" },
+  { id: 6, en: "Larynx", zh: "喉", short: "PART 6" }
+];
+
+const CARDS = [
+{n:1,sec:1,
+ q:"How many vertebrae are present in each section of the vertebral column?",
+ qzh:"脊柱各段各有多少块椎骨？",
+ a:"7 cervical, 12 thoracic, 5 lumbar, 5 sacral, 3–5 coccygeal.",
+ azh:"颈椎7、胸椎12、腰椎5、骶椎5、尾椎3–5。"},
+{n:2,sec:1,
+ q:"Which vertebra does not have a body?",
+ qzh:"哪一块椎骨没有椎体？",
+ a:"Atlas (C1).",
+ azh:"寰椎（C1）。"},
+{n:3,sec:1,
+ q:"Which part of the lumbar vertebra is considered to be a rudiment of a rib?",
+ qzh:"腰椎的哪一部分被认为是肋的遗迹？",
+ a:"Transverse process.",
+ azh:"横突。"},
+{n:4,sec:1,
+ q:"Which vertebrae have a heart-shaped body?",
+ qzh:"哪些椎骨的椎体呈心形？",
+ a:"Thoracic vertebrae.",
+ azh:"胸椎。"},
+{n:5,sec:1,
+ q:"In which plane are the superior articular surfaces of the thoracic vertebrae oriented?",
+ qzh:"胸椎的上关节面位于哪个平面？",
+ a:"In the coronal (frontal) plane.",
+ azh:"冠状（额）平面。"},
+{n:6,sec:1,
+ q:"Which part of the vertebral column features the highest rotational degree of freedom, and why?",
+ qzh:"脊柱哪一段的旋转自由度最大？为什么？",
+ a:"Thoracic part; its facet joints are oriented in the coronal plane.",
+ azh:"胸段；其关节突关节面呈冠状位。"},
+{n:7,sec:1,
+ q:"What is the reason of the lack of torsion in the lumbar part of the vertebral column?",
+ qzh:"脊柱腰段为什么不能扭转？",
+ a:"The lumbar facet joints are oriented in the sagittal plane.",
+ azh:"腰椎关节突关节面呈矢状位。"},
+{n:8,sec:1,
+ q:"The spinous process of which cervical vertebra is palpable?",
+ qzh:"可以触及哪一块颈椎的棘突？",
+ a:"C7 (vertebra prominens).",
+ azh:"第7颈椎（隆椎）。"},
+{n:9,sec:1,
+ q:"What is name of the diarthrosis between the adjacent articular processes of the vertebrae?",
+ qzh:"相邻椎骨关节突之间的关节叫什么？",
+ a:"Zygapophyseal (facet) joint; a plane synovial joint.",
+ azh:"关节突关节；平面滑膜关节。"},
+{n:10,sec:1,
+ q:"What is the type of synarthrosis of the sacrum?",
+ qzh:"骶骨属于哪种类型的骨性结合（synarthrosis）？",
+ a:"Synostosis.",
+ azh:"骨性结合（synostosis）。"},
+{n:11,sec:1,
+ q:"Which part of the sacrum is considered to be rudiments of the transverse processes of the vertebrae?",
+ qzh:"骶骨的哪一部分被认为是椎骨横突的遗迹？",
+ a:"Lateral sacral crest.",
+ azh:"骶外侧嵴。"},
+{n:12,sec:1,
+ q:"What is the type of the atlanto-occipital joint?",
+ qzh:"寰枕关节属于什么类型？",
+ a:"Ellipsoid (condylar) biaxial joint.",
+ azh:"椭圆（髁状）双轴关节。"},
+{n:13,sec:1,
+ q:"Name the ligaments which connect the vertebral arches.",
+ qzh:"连接椎弓的韧带有哪些？",
+ a:"Ligamenta flava.",
+ azh:"黄韧带。"},
+{n:14,sec:1,
+ q:"Which syndesmosis can be found on the anterior surfaces of the vertebral bodies?",
+ qzh:"椎体前面可见哪种韧带联合（syndesmosis）？",
+ a:"Anterior longitudinal ligament.",
+ azh:"前纵韧带。"},
+{n:15,sec:1,
+ q:"Which ligament connects the tips of the spinous processes of the cervical vertebrae?",
+ qzh:"哪条韧带连接颈椎棘突的尖端？",
+ a:"Nuchal ligament.",
+ azh:"项韧带。"},
+{n:16,sec:1,
+ q:"Which ligament retains the dens of axis in the fovea of the dens?",
+ qzh:"哪条韧带把枢椎齿突固定在齿突凹内？",
+ a:"Transverse ligament of the atlas.",
+ azh:"寰椎横韧带。"},
+{n:17,sec:1,
+ q:"What are the parts of the atlanto-axial joint?",
+ qzh:"寰枢关节由哪几部分组成？",
+ a:"Two lateral atlanto-axial joints and one median atlanto-axial joint.",
+ azh:"两个外侧寰枢关节和一个正中寰枢关节。"},
+{n:18,sec:1,
+ q:"Name the inner part of the intervertebral discs.",
+ qzh:"椎间盘的内部结构叫什么？",
+ a:"Nucleus pulposus.",
+ azh:"髓核。"},
+{n:19,sec:1,
+ q:"Name the sagittal curvature of the vertebral column on the cervical and lumbar parts.",
+ qzh:"颈椎和腰椎部分在矢状面上的弯曲叫什么？",
+ a:"Lordosis.",
+ azh:"前凸（lordosis）。"},
+{n:20,sec:1,
+ q:"Name the sagittal curvature of the vertebral column on the thoracic and sacral parts.",
+ qzh:"胸部和骶部在矢状面上的弯曲叫什么？",
+ a:"Kyphosis.",
+ azh:"后凸（kyphosis）。"},
+{n:21,sec:1,
+ q:"Which of the two lordoses forms first?",
+ qzh:"两个前凸中哪一个先形成？",
+ a:"Cervical lordosis.",
+ azh:"颈椎前凸。"},
+{n:22,sec:2,
+ q:"What are the major parts of the sternum?",
+ qzh:"胸骨的主要部分有哪些？",
+ a:"Manubrium, body, xiphoid process.",
+ azh:"胸骨柄、胸骨体、剑突。"},
+{n:23,sec:2,
+ q:"At which vertebral level does the transthoracic plane of the sternal angle go through?",
+ qzh:"胸骨角平面相当于哪个椎骨水平？",
+ a:"T4/T5.",
+ azh:"T4/T5。"},
+{n:24,sec:2,
+ q:"Which rib articulates with the sternum next to the sternal angle?",
+ qzh:"哪一条肋在胸骨角旁与胸骨相连？",
+ a:"The 2nd rib.",
+ azh:"第2肋。"},
+{n:25,sec:2,
+ q:"What are the classes of the ribs?",
+ qzh:"肋如何分类？",
+ a:"True ribs (1–7), false ribs (8–10), floating ribs (11–12).",
+ azh:"真肋（1–7）、假肋（8–10）、浮肋（11–12）。"},
+{n:26,sec:2,
+ q:"Which joints participate in the respiratory movements?",
+ qzh:"哪些关节参与呼吸运动？",
+ a:"Costovertebral, costotransverse, sternocostal and interchondral joints.",
+ azh:"肋头关节、肋横突关节、胸肋关节、软骨间关节。"},
+{n:27,sec:2,
+ q:"What are the parts of the costovertebral joints?",
+ qzh:"肋椎关节包括哪几部分？",
+ a:"Joint of the head of the rib and costotransverse joint.",
+ azh:"肋头关节和肋横突关节。"},
+{n:28,sec:2,
+ q:"What anatomical item closes the inferior thoracic aperture?",
+ qzh:"什么结构封闭胸廓下口？",
+ a:"The diaphragm.",
+ azh:"膈。"},
+{n:29,sec:2,
+ q:"What are the two major parts of the diaphragm?",
+ qzh:"膈的两大主要部分是什么？",
+ a:"Muscular part and central tendon.",
+ azh:"肌性部和中心腱。"},
+{n:30,sec:2,
+ q:"Where do the muscle fibers of the muscular part of the diaphragm originate from?",
+ qzh:"膈肌性部的肌纤维起自何处？",
+ a:"Xiphoid process, lower six ribs and costal cartilages, and lumbar vertebrae (crura and arcuate ligaments).",
+ azh:"剑突、下6对肋及肋软骨、腰椎（膈脚和弓状韧带）。"},
+{n:31,sec:2,
+ q:"List the named openings of the diaphragm.",
+ qzh:"列出膈的命名裂孔。",
+ a:"Aortic hiatus, esophageal hiatus, caval opening.",
+ azh:"主动脉裂孔、食管裂孔、腔静脉孔。"},
+{n:32,sec:2,
+ q:"In which part of the diaphragm is the caval opening located?",
+ qzh:"腔静脉孔位于膈的哪一部分？",
+ a:"In the central tendon (T8).",
+ azh:"中心腱内（T8）。"},
+{n:33,sec:2,
+ q:"What anatomical items accompany the esophagus through the esophageal hiatus?",
+ qzh:"哪些结构随食管一起通过食管裂孔？",
+ a:"Vagus nerves.",
+ azh:"迷走神经。"},
+{n:34,sec:2,
+ q:"Where does the thoracic duct pass through the diaphragm?",
+ qzh:"胸导管在何处穿过膈？",
+ a:"Aortic hiatus (T12).",
+ azh:"主动脉裂孔（T12）。"},
+{n:35,sec:2,
+ q:"Name at least two accessory respiratory muscles.",
+ qzh:"至少说出两块辅助呼吸肌。",
+ a:"Sternocleidomastoid, scalenes, pectoralis major and minor, serratus anterior.",
+ azh:"胸锁乳突肌、斜角肌、胸大肌和胸小肌、前锯肌。"},
+{n:36,sec:2,
+ q:"Which is the most lateral part of the erector spinae muscle?",
+ qzh:"竖脊肌最外侧的部分是哪一块？",
+ a:"Iliocostalis.",
+ azh:"髂肋肌。"},
+{n:37,sec:2,
+ q:"Name the intercostal muscles.",
+ qzh:"说出肋间肌的名称。",
+ a:"External, internal and innermost intercostal muscles.",
+ azh:"肋间外肌、肋间内肌、肋间最内肌。"},
+{n:38,sec:2,
+ q:"Which intercostal muscle is inspiratory muscle?",
+ qzh:"哪一块肋间肌是吸气肌？",
+ a:"External intercostal.",
+ azh:"肋间外肌。"},
+{n:39,sec:2,
+ q:"Which intercostal muscle is expiratory muscle?",
+ qzh:"哪一块肋间肌是呼气肌？",
+ a:"Internal intercostal.",
+ azh:"肋间内肌。"},
+{n:40,sec:2,
+ q:"What is the origin of the anterior intercostal arteries?",
+ qzh:"肋间前动脉起自何处？",
+ a:"Internal thoracic artery.",
+ azh:"胸廓内动脉。"},
+{n:41,sec:2,
+ q:"What is the origin of the posterior intercostal arteries?",
+ qzh:"肋间后动脉起自何处？",
+ a:"Descending thoracic aorta.",
+ azh:"胸主动脉。"},
+{n:42,sec:2,
+ q:"Where are the anterior intercostal veins drained to?",
+ qzh:"肋间前静脉回流到哪里？",
+ a:"Internal thoracic veins.",
+ azh:"胸廓内静脉。"},
+{n:43,sec:2,
+ q:"Where are the posterior intercostal veins drained to?",
+ qzh:"肋间后静脉回流到哪里？",
+ a:"Azygos system.",
+ azh:"奇静脉系统。"},
+{n:44,sec:2,
+ q:"What is the most superior item in the intercostal space?",
+ qzh:"肋间隙内最靠上的结构是什么？",
+ a:"Intercostal vein.",
+ azh:"肋间静脉。"},
+{n:45,sec:2,
+ q:"Name the innermost layer of the thoracic wall.",
+ qzh:"胸壁最内层的结构是什么？",
+ a:"Endothoracic fascia.",
+ azh:"胸内筋膜。"},
+{n:46,sec:3,
+ q:"What is the definition of the mediastinum?",
+ qzh:"纵隔的定义是什么？",
+ a:"The space between the two pleural sacs, from the superior thoracic aperture to the diaphragm, containing all thoracic viscera except the lungs.",
+ azh:"两胸膜囊之间、从胸廓上口到膈的腔隙，含除肺以外的胸腔脏器。"},
+{n:47,sec:3,
+ q:"List the five layers of the superior mediastinum.",
+ qzh:"列出上纵隔的五个层次。",
+ a:"Thymus, great veins, aortic arch and its branches, trachea, esophagus (with thoracic duct and sympathetic trunks).",
+ azh:"胸腺、大静脉、主动脉弓及其分支、气管、食管（连同胸导管和交感干）。"},
+{n:48,sec:3,
+ q:"Which veins form the venous angle?",
+ qzh:"静脉角由哪些静脉汇合形成？",
+ a:"Internal jugular and subclavian veins.",
+ azh:"颈内静脉和锁骨下静脉。"},
+{n:49,sec:3,
+ q:"What is the great importance of the left venous angle?",
+ qzh:"左静脉角的重要意义是什么？",
+ a:"The thoracic duct opens into it.",
+ azh:"胸导管注入此处。"},
+{n:50,sec:3,
+ q:"In which side of the thoracic cavity does the azygos vein ascend?",
+ qzh:"奇静脉在胸腔的哪一侧上行？",
+ a:"Right side.",
+ azh:"右侧。"},
+{n:51,sec:3,
+ q:"Where is the azygos vein drained to?",
+ qzh:"奇静脉汇入何处？",
+ a:"Superior vena cava.",
+ azh:"上腔静脉。"},
+{n:52,sec:4,
+ q:"In what vertebral plane is the tracheal bifurcation located?",
+ qzh:"气管杈位于哪个椎骨平面？",
+ a:"T4/T5.",
+ azh:"T4/T5。"},
+{n:53,sec:4,
+ q:"What are the special features of the right main bronchus?",
+ qzh:"右主支气管有什么特点？",
+ a:"Wider, shorter, more vertical; divides into three lobar bronchi.",
+ azh:"更宽、更短、更垂直；分为三个肺叶支气管。"},
+{n:54,sec:4,
+ q:"What are the special features of the left main bronchus?",
+ qzh:"左主支气管有什么特点？",
+ a:"Narrower, longer, more horizontal; divides into two lobar bronchi.",
+ azh:"更窄、更长、更水平；分为两个肺叶支气管。"},
+{n:55,sec:4,
+ q:"Name the parts of the parietal pleura.",
+ qzh:"壁胸膜分为哪几部分？",
+ a:"Costal, mediastinal, diaphragmatic and cervical parts.",
+ azh:"肋胸膜、纵隔胸膜、膈胸膜、颈胸膜。"},
+{n:56,sec:4,
+ q:"Name the initial pathways of the pulmonary lymphatics.",
+ qzh:"肺淋巴的最初通路有哪些？",
+ a:"Subpleural and peribronchovascular plexuses, draining to the bronchopulmonary nodes.",
+ azh:"胸膜下丛和支气管血管周围丛，汇入支气管肺淋巴结。"},
+{n:57,sec:4,
+ q:"What is the smallest surgically resectable subdivision of the lobes of the lungs?",
+ qzh:"肺叶内可手术切除的最小单位是什么？",
+ a:"Bronchopulmonary segment.",
+ azh:"支气管肺段。"},
+{n:58,sec:4,
+ q:"How many bronchopulmonary segments make up the lobes of the right lung?",
+ qzh:"右肺各叶共有多少个支气管肺段？",
+ a:"Ten (3 + 2 + 5).",
+ azh:"10个（3+2+5）。"},
+{n:59,sec:4,
+ q:"How many bronchopulmonary segments make up the lobes of the left lung?",
+ qzh:"左肺各叶共有多少个支气管肺段？",
+ a:"Eight (4 + 4).",
+ azh:"8个（4+4）。"},
+{n:60,sec:4,
+ q:"List the major items of the right pulmonary hilum in supero-inferior order.",
+ qzh:"按从上到下的顺序列出右肺门的主要结构。",
+ a:"Eparterial bronchus, pulmonary artery, pulmonary veins.",
+ azh:"动脉上支气管、肺动脉、肺静脉。"},
+{n:61,sec:4,
+ q:"List the major items of the left pulmonary hilum in supero-inferior order.",
+ qzh:"按从上到下的顺序列出左肺门的主要结构。",
+ a:"Pulmonary artery, bronchus, pulmonary veins.",
+ azh:"肺动脉、支气管、肺静脉。"},
+{n:62,sec:4,
+ q:"Define the location of the aortic groove.",
+ qzh:"主动脉沟位于何处？",
+ a:"On the mediastinal surface of the left lung, behind the hilum.",
+ azh:"左肺纵隔面，肺门后方。"},
+{n:63,sec:4,
+ q:"Define the pulmonary root.",
+ qzh:"肺根的定义是什么？",
+ a:"The structures entering the lung at the hilum (bronchus, pulmonary artery, pulmonary veins), enclosed in pleura.",
+ azh:"经肺门进出肺的结构（支气管、肺动脉、肺静脉），外包胸膜。"},
+{n:64,sec:4,
+ q:"What is the topographic relation of the vagus nerve to the root of the lung?",
+ qzh:"迷走神经与肺根的位置关系如何？",
+ a:"Posterior to the root.",
+ azh:"肺根后方。"},
+{n:65,sec:4,
+ q:"Name two pleural recesses.",
+ qzh:"说出两个胸膜隐窝。",
+ a:"Costodiaphragmatic and costomediastinal recesses.",
+ azh:"肋膈隐窝、肋纵隔隐窝。"},
+{n:66,sec:4,
+ q:"What is the pulmonary ligament?",
+ qzh:"肺韧带是什么？",
+ a:"A fold of pleura below the pulmonary root.",
+ azh:"肺根下方的胸膜皱襞。"},
+{n:67,sec:4,
+ q:"What are the functional vessels of the lung?",
+ qzh:"肺的功能性血管是什么？",
+ a:"Pulmonary arteries and pulmonary veins.",
+ azh:"肺动脉和肺静脉。"},
+{n:68,sec:5,
+ q:"List the paranasal sinuses.",
+ qzh:"列出鼻旁窦。",
+ a:"Frontal, maxillary, sphenoidal and ethmoidal sinuses.",
+ azh:"额窦、上颌窦、蝶窦、筛窦。"},
+{n:69,sec:5,
+ q:"Where does the frontal sinus open to?",
+ qzh:"额窦开口于何处？",
+ a:"Into the middle nasal meatus.",
+ azh:"中鼻道。"},
+{n:70,sec:5,
+ q:"Where does the maxillary sinus open to?",
+ qzh:"上颌窦开口于何处？",
+ a:"Into the middle nasal meatus.",
+ azh:"中鼻道。"},
+{n:71,sec:5,
+ q:"Where does the sphenoidal sinus open to?",
+ qzh:"蝶窦开口于何处？",
+ a:"Into the sphenoethmoidal recess.",
+ azh:"蝶筛隐窝。"},
+{n:72,sec:5,
+ q:"What opens into the inferior nasal meatus?",
+ qzh:"什么结构开口于下鼻道？",
+ a:"The nasolacrimal duct.",
+ azh:"鼻泪管。"},
+{n:73,sec:5,
+ q:"Which conchae belong to the ethmoidal bone?",
+ qzh:"哪些鼻甲属于筛骨？",
+ a:"Superior and middle nasal conchae.",
+ azh:"上鼻甲和中鼻甲。"},
+{n:74,sec:6,
+ q:"List the cartilages of the larynx.",
+ qzh:"列出喉的软骨。",
+ a:"Thyroid, cricoid, epiglottic, arytenoid, corniculate, cuneiform and triticeous cartilages.",
+ azh:"甲状软骨、环状软骨、会厌软骨、杓状软骨、小角软骨、楔状软骨、麦粒软骨。"},
+{n:75,sec:6,
+ q:"What is the laryngeal prominence?",
+ qzh:"喉结是什么？",
+ a:"The midline prominence of the thyroid cartilage.",
+ azh:"甲状软骨前正中隆起。"},
+{n:76,sec:6,
+ q:"What are the borders of the laryngeal inlet?",
+ qzh:"喉口的边界是什么？",
+ a:"Epiglottis, aryepiglottic folds, arytenoid cartilages.",
+ azh:"会厌、杓状会厌襞、杓状软骨。"},
+{n:77,sec:6,
+ q:"What are the parts of the rima glottidis?",
+ qzh:"声门裂分为哪几部分？",
+ a:"Intermembranous and intercartilaginous parts.",
+ azh:"膜间部和软骨间部。"},
+{n:78,sec:6,
+ q:"What does the vocal fold consist of?",
+ qzh:"声襞由什么构成？",
+ a:"Vocal ligament and vocalis muscle.",
+ azh:"声韧带和声带肌。"},
+{n:79,sec:6,
+ q:"Which muscle can open the rima glottidis?",
+ qzh:"哪块肌肉可以开大声门裂？",
+ a:"Posterior cricoarytenoid.",
+ azh:"环杓后肌。"},
+{n:80,sec:6,
+ q:"Which are those major laryngeal muscles that close the rima glottidis?",
+ qzh:"哪些主要的喉肌可以关闭声门裂？",
+ a:"Lateral cricoarytenoid, transverse and oblique arytenoids, thyroarytenoid.",
+ azh:"环杓侧肌、杓横肌、杓斜肌、甲杓肌。"},
+{n:81,sec:6,
+ q:"Which are the fibro-elastic membranes of the larynx?",
+ qzh:"喉的纤维弹性膜有哪些？",
+ a:"Quadrangular membrane and conus elasticus.",
+ azh:"方形膜和弹性圆锥。"},
+{n:82,sec:6,
+ q:"Which nerve innervates the cricothyroid muscle?",
+ qzh:"哪条神经支配环甲肌？",
+ a:"External laryngeal nerve.",
+ azh:"喉上神经外支。"},
+{n:83,sec:6,
+ q:"Which nerve supplies the mucous membrane of the infraglottic cavity?",
+ qzh:"哪条神经支配声门下腔的黏膜？",
+ a:"Recurrent laryngeal nerve.",
+ azh:"喉返神经。"},
+{n:84,sec:6,
+ q:"Which are the divisions of the laryngeal cavity?",
+ qzh:"喉腔分为哪几部分？",
+ a:"Vestibule, middle part, infraglottic cavity.",
+ azh:"喉前庭、喉中间腔、声门下腔。"}
+];
+
+/* WORD_AUDIO_START */
+const WORD_AUDIO = {"(11–12).":"audio/w_20ccefd17562.mp3","(1–7),":"audio/w_180c2129bd42.mp3","(3":"audio/w_9b1ba7115881.mp3","(4":"audio/w_94a05670becb.mp3","(8–10),":"audio/w_34c944cba3ca.mp3","(bronchus,":"audio/w_61ea5141dcb9.mp3","(C1).":"audio/w_982ad43becd5.mp3","(condylar)":"audio/w_1c1f05312bcf.mp3","(crura":"audio/w_d1cc73e60a57.mp3","(facet)":"audio/w_44387d090ede.mp3","(frontal)":"audio/w_563e6cf45593.mp3","(T12).":"audio/w_da1fc6bccbeb.mp3","(T8).":"audio/w_1932731bbdf2.mp3","(vertebra":"audio/w_9808fcc97dfe.mp3","(with":"audio/w_8eccd6b7594e.mp3","+":"audio/w_8c6482114a1c.mp3","12":"audio/w_6c7a38c785e1.mp3","2":"audio/w_222183c00485.mp3","2nd":"audio/w_25a9db86e3da.mp3","3–5":"audio/w_c1ae6face936.mp3","4).":"audio/w_94a05670becb.mp3","5":"audio/w_1b581dc430d8.mp3","5).":"audio/w_1b581dc430d8.mp3","7":"audio/w_f6141d49ff74.mp3","a":"audio/w_4048136b6970.mp3","A":"audio/w_8b993ae1dfd0.mp3","accessory":"audio/w_2226ceca49e6.mp3","accompany":"audio/w_07cff4fcd387.mp3","adjacent":"audio/w_227d8b6d74a9.mp3","all":"audio/w_aa4e237682b5.mp3","anatomical":"audio/w_8c0864bf3ae3.mp3","and":"audio/w_f4586b9a3a19.mp3","angle":"audio/w_39db2d72f0cb.mp3","angle?":"audio/w_39db2d72f0cb.mp3","anterior":"audio/w_5379cbbe6488.mp3","Anterior":"audio/w_2c80a5e55a51.mp3","anterior.":"audio/w_5379cbbe6488.mp3","aorta.":"audio/w_9cd696be4599.mp3","Aortic":"audio/w_5979028c5646.mp3","aortic":"audio/w_3512e170296b.mp3","aperture":"audio/w_e3344fcef0d4.mp3","aperture?":"audio/w_e3344fcef0d4.mp3","arch":"audio/w_88e638fd1966.mp3","arches.":"audio/w_ed996d08a3d0.mp3","arcuate":"audio/w_264f0719f946.mp3","are":"audio/w_0bd4d940e96d.mp3","arteries":"audio/w_dad20033f251.mp3","arteries?":"audio/w_dad20033f251.mp3","artery,":"audio/w_2a7fc049b32b.mp3","artery.":"audio/w_2a7fc049b32b.mp3","articular":"audio/w_145252d7d081.mp3","articulates":"audio/w_a8afa42e21e4.mp3","aryepiglottic":"audio/w_0b95bb0337bf.mp3","arytenoid":"audio/w_1b4cbb62cbd0.mp3","arytenoid,":"audio/w_1b4cbb62cbd0.mp3","arytenoids,":"audio/w_e1c58f376155.mp3","ascend?":"audio/w_b4e23f3a5657.mp3","At":"audio/w_851c15397dae.mp3","at":"audio/w_7ccfecbaadf6.mp3","atlanto-axial":"audio/w_4ef7b4a25219.mp3","atlanto-occipital":"audio/w_9b696e5d5335.mp3","Atlas":"audio/w_1a4b5f9e0251.mp3","atlas.":"audio/w_d4b5e0a8cf46.mp3","axis":"audio/w_be5cf85ac9ce.mp3","Azygos":"audio/w_6dcc6c0ef261.mp3","azygos":"audio/w_adcfbfea981a.mp3","be":"audio/w_fa790605369c.mp3","behind":"audio/w_9c1e54ce95a5.mp3","belong":"audio/w_924e286ea1b2.mp3","below":"audio/w_f7df866a3632.mp3","between":"audio/w_0b3599d94456.mp3","biaxial":"audio/w_ee4149716a84.mp3","bifurcation":"audio/w_7d283a3ef8e1.mp3","bodies?":"audio/w_ed647d23bdc1.mp3","body,":"audio/w_d0387a299349.mp3","body?":"audio/w_d0387a299349.mp3","bone?":"audio/w_c54c5ecc5e00.mp3","borders":"audio/w_a2abe101412d.mp3","branches,":"audio/w_98658c5bba32.mp3","bronchi.":"audio/w_aa64d28b31f8.mp3","bronchopulmonary":"audio/w_d8e24180c05c.mp3","Bronchopulmonary":"audio/w_6a1205771df6.mp3","bronchus,":"audio/w_61ea5141dcb9.mp3","bronchus?":"audio/w_61ea5141dcb9.mp3","C7":"audio/w_c7b99451b90e.mp3","can":"audio/w_09d05ec4b4f2.mp3","cartilage.":"audio/w_8f62dae2c35d.mp3","cartilages":"audio/w_f6198cfe6a41.mp3","cartilages,":"audio/w_f6198cfe6a41.mp3","cartilages.":"audio/w_f6198cfe6a41.mp3","cava.":"audio/w_e8ac51fa08ae.mp3","caval":"audio/w_e68838c6ee4f.mp3","cavity":"audio/w_745abe75ad7f.mp3","cavity.":"audio/w_745abe75ad7f.mp3","cavity?":"audio/w_745abe75ad7f.mp3","central":"audio/w_4bd7594b3eb5.mp3","cervical":"audio/w_7570e5aadd02.mp3","Cervical":"audio/w_f64d1828bfad.mp3","cervical,":"audio/w_7570e5aadd02.mp3","classes":"audio/w_8c590ed7bc70.mp3","close":"audio/w_9f755cb89336.mp3","closes":"audio/w_d397e5f9b089.mp3","coccygeal.":"audio/w_65be82157868.mp3","column":"audio/w_e55de9a1330a.mp3","column?":"audio/w_e55de9a1330a.mp3","conchae":"audio/w_f77134a709f8.mp3","conchae.":"audio/w_f77134a709f8.mp3","connect":"audio/w_a13823e9766f.mp3","connects":"audio/w_d588bc15e75e.mp3","considered":"audio/w_999430ca79ae.mp3","consist":"audio/w_ab695a8cedf2.mp3","containing":"audio/w_346a71c2d5fd.mp3","conus":"audio/w_0345abfc5c26.mp3","corniculate,":"audio/w_d530b8192cfa.mp3","coronal":"audio/w_5cb03b7f6afa.mp3","costal":"audio/w_d8c3b1a93670.mp3","Costal,":"audio/w_10dff44681c9.mp3","Costodiaphragmatic":"audio/w_bf0250149b00.mp3","costomediastinal":"audio/w_85c1913ddf32.mp3","costotransverse":"audio/w_ef7cfa560f9f.mp3","costotransverse,":"audio/w_ef7cfa560f9f.mp3","costovertebral":"audio/w_a13d1deea93d.mp3","Costovertebral,":"audio/w_35ff54189ae9.mp3","crest.":"audio/w_92abc4432369.mp3","cricoarytenoid,":"audio/w_f67c04a70ecf.mp3","cricoarytenoid.":"audio/w_f67c04a70ecf.mp3","cricoid,":"audio/w_65c38187d736.mp3","cricothyroid":"audio/w_2d4ed2ffde0b.mp3","cuneiform":"audio/w_939dda03b216.mp3","curvature":"audio/w_8269374bb09b.mp3","Define":"audio/w_b03bf8836a2c.mp3","definition":"audio/w_4f88fa32f5b0.mp3","degree":"audio/w_e2167084770e.mp3","dens":"audio/w_548a1c7186c1.mp3","dens?":"audio/w_548a1c7186c1.mp3","Descending":"audio/w_6f379b97bca1.mp3","diaphragm":"audio/w_8fa48b589904.mp3","diaphragm,":"audio/w_8fa48b589904.mp3","diaphragm.":"audio/w_8fa48b589904.mp3","diaphragm?":"audio/w_8fa48b589904.mp3","diaphragmatic":"audio/w_38426354db9a.mp3","diarthrosis":"audio/w_c447a0f88233.mp3","discs.":"audio/w_886aec45a9e9.mp3","divides":"audio/w_bb0b1bf27bff.mp3","divisions":"audio/w_f19f3a9ab250.mp3","do":"audio/w_0c602efcd28d.mp3","does":"audio/w_0d0d84380e9f.mp3","drained":"audio/w_fd300db87e19.mp3","draining":"audio/w_d19dd5e02ec4.mp3","duct":"audio/w_2bc0294c5a97.mp3","duct.":"audio/w_2bc0294c5a97.mp3","each":"audio/w_501f00b2d705.mp3","Eight":"audio/w_7e322e2623f2.mp3","elasticus.":"audio/w_3f7ceb6f085b.mp3","Ellipsoid":"audio/w_23c22b7e0b9e.mp3","enclosed":"audio/w_6c9268654712.mp3","Endothoracic":"audio/w_81591ea7c2e3.mp3","entering":"audio/w_6f9adcb9774f.mp3","Eparterial":"audio/w_24643f3721e2.mp3","epiglottic,":"audio/w_21e3ad9c7ac0.mp3","Epiglottis,":"audio/w_48048f23d8af.mp3","erector":"audio/w_1413246250ef.mp3","esophageal":"audio/w_0014bd375c03.mp3","esophagus":"audio/w_2de3802e3087.mp3","ethmoidal":"audio/w_1eae1402dd9f.mp3","except":"audio/w_16947d1e2616.mp3","expiratory":"audio/w_0d82223fd8ad.mp3","External":"audio/w_4dfc38a72688.mp3","External,":"audio/w_4dfc38a72688.mp3","facet":"audio/w_44387d090ede.mp3","false":"audio/w_28a23c92816c.mp3","fascia.":"audio/w_33c77b1bd134.mp3","features":"audio/w_1044379866a7.mp3","fibers":"audio/w_10e55c7b8bad.mp3","fibro-elastic":"audio/w_b91b4c704944.mp3","first?":"audio/w_0d2affee2edc.mp3","five":"audio/w_575203c3dbd4.mp3","flava.":"audio/w_8d9eedce712b.mp3","floating":"audio/w_d7a67f2f67b6.mp3","fold":"audio/w_6808e9dd60bc.mp3","folds,":"audio/w_b9c3891b7d86.mp3","form":"audio/w_4534454dc03d.mp3","forms":"audio/w_3becb469b1e1.mp3","found":"audio/w_52aab977933f.mp3","fovea":"audio/w_a102522bdffc.mp3","freedom,":"audio/w_66db97c644fc.mp3","from":"audio/w_89af3e21ae54.mp3","from?":"audio/w_89af3e21ae54.mp3","frontal":"audio/w_563e6cf45593.mp3","Frontal,":"audio/w_58f8d4875a95.mp3","functional":"audio/w_3b89a52d7ad0.mp3","glottidis?":"audio/w_e02560fa70da.mp3","go":"audio/w_68440f35f499.mp3","great":"audio/w_691ed97fb01b.mp3","groove.":"audio/w_3fb180e986a3.mp3","have":"audio/w_6bc538eae588.mp3","head":"audio/w_167744e62236.mp3","heart-shaped":"audio/w_3ef965f64d2f.mp3","hiatus":"audio/w_29f523f94d59.mp3","hiatus,":"audio/w_29f523f94d59.mp3","hiatus?":"audio/w_29f523f94d59.mp3","highest":"audio/w_314a264211ed.mp3","hilum":"audio/w_b531571799c8.mp3","hilum.":"audio/w_b531571799c8.mp3","horizontal;":"audio/w_033ffdb7828a.mp3","How":"audio/w_1990afaf5b04.mp3","Iliocostalis.":"audio/w_9c86987cb3e6.mp3","importance":"audio/w_b3b47aa9ecb6.mp3","in":"audio/w_a86b0dcc7d4b.mp3","In":"audio/w_4569d7f34841.mp3","inferior":"audio/w_a4f256aa2c8c.mp3","infraglottic":"audio/w_db1b8be7e692.mp3","initial":"audio/w_3fe0268c5648.mp3","inlet?":"audio/w_7456c678d555.mp3","inner":"audio/w_7aba0677f65a.mp3","innermost":"audio/w_424e67f6daca.mp3","innervates":"audio/w_819618bc9cb5.mp3","inspiratory":"audio/w_536ffb53d8dd.mp3","intercartilaginous":"audio/w_e0695f9ff0fe.mp3","interchondral":"audio/w_8754ea26e263.mp3","intercostal":"audio/w_b4a2fb18be75.mp3","Intercostal":"audio/w_2644a9ea65eb.mp3","intercostal.":"audio/w_b4a2fb18be75.mp3","Intermembranous":"audio/w_6d682688c9e2.mp3","internal":"audio/w_fd46f5fbde36.mp3","Internal":"audio/w_46d52d5a2314.mp3","intervertebral":"audio/w_e99b0bc3990f.mp3","into":"audio/w_cdb781df2142.mp3","Into":"audio/w_84b2eba68fb9.mp3","is":"audio/w_fc2828727e0c.mp3","it.":"audio/w_c53c740b5921.mp3","item":"audio/w_86d31579ca82.mp3","items":"audio/w_f330e7f706e7.mp3","its":"audio/w_905565537e29.mp3","Joint":"audio/w_c3e3e551961d.mp3","joint.":"audio/w_b99646ff37e0.mp3","joint;":"audio/w_b99646ff37e0.mp3","joint?":"audio/w_b99646ff37e0.mp3","joints":"audio/w_c7452c9643b7.mp3","joints.":"audio/w_c7452c9643b7.mp3","joints?":"audio/w_c7452c9643b7.mp3","jugular":"audio/w_496bb94f1abe.mp3","Kyphosis.":"audio/w_fb75a98766a9.mp3","lack":"audio/w_afaab580b608.mp3","laryngeal":"audio/w_ee168ef209e7.mp3","larynx.":"audio/w_5ac1a607aa62.mp3","larynx?":"audio/w_5ac1a607aa62.mp3","Lateral":"audio/w_a60b985b1bd1.mp3","lateral":"audio/w_0c1bd5bd0151.mp3","layer":"audio/w_ce521a624688.mp3","layers":"audio/w_0a389e73d537.mp3","least":"audio/w_b1a0e07e28c0.mp3","left":"audio/w_e4c02f993192.mp3","level":"audio/w_c2a87289efae.mp3","ligament":"audio/w_f57865150a2f.mp3","ligament.":"audio/w_f57865150a2f.mp3","ligament?":"audio/w_f57865150a2f.mp3","Ligamenta":"audio/w_09e6d442d677.mp3","ligaments":"audio/w_5526d6020775.mp3","ligaments).":"audio/w_5526d6020775.mp3","List":"audio/w_cb31f34db7e6.mp3","lobar":"audio/w_d404b03dc338.mp3","lobes":"audio/w_7958247c095e.mp3","located?":"audio/w_b56925a1e71a.mp3","location":"audio/w_f98278f3d7ce.mp3","longer,":"audio/w_e63ac270a5ed.mp3","longitudinal":"audio/w_91cc82241716.mp3","lordoses":"audio/w_590ba219303f.mp3","Lordosis.":"audio/w_67e3da08b328.mp3","lordosis.":"audio/w_e079b4f923b2.mp3","lower":"audio/w_e55ac3d7ee93.mp3","lumbar":"audio/w_fda460e67814.mp3","lumbar,":"audio/w_fda460e67814.mp3","lung":"audio/w_45bd568260a9.mp3","lung,":"audio/w_45bd568260a9.mp3","lung?":"audio/w_45bd568260a9.mp3","lungs.":"audio/w_02ca1e858fd8.mp3","lungs?":"audio/w_02ca1e858fd8.mp3","lymphatics.":"audio/w_f43cf17c593c.mp3","main":"audio/w_28843d52ba66.mp3","major":"audio/w_5acffc2769d6.mp3","make":"audio/w_537be77bf55d.mp3","Manubrium,":"audio/w_47cb538697cb.mp3","many":"audio/w_3c5e45f4e353.mp3","maxillary":"audio/w_22d8bd2913b7.mp3","maxillary,":"audio/w_22d8bd2913b7.mp3","meatus.":"audio/w_0b01a0d3dc4a.mp3","meatus?":"audio/w_0b01a0d3dc4a.mp3","median":"audio/w_35007971c901.mp3","mediastinal":"audio/w_9ac3ac69e245.mp3","mediastinal,":"audio/w_9ac3ac69e245.mp3","mediastinum.":"audio/w_924ddda1072f.mp3","mediastinum?":"audio/w_924ddda1072f.mp3","membrane":"audio/w_a303658f38f4.mp3","membranes":"audio/w_157aacaa3cb2.mp3","middle":"audio/w_ccb9d8997641.mp3","midline":"audio/w_6fdebcb01db0.mp3","minor,":"audio/w_9a3f3115a7f8.mp3","more":"audio/w_3c2acd238aab.mp3","most":"audio/w_192bec7ca8b9.mp3","movements?":"audio/w_346bee5fb761.mp3","mucous":"audio/w_76d5fca7133a.mp3","muscle":"audio/w_5116639c510e.mp3","muscle.":"audio/w_5116639c510e.mp3","muscle?":"audio/w_5116639c510e.mp3","muscles":"audio/w_d5a93edd4ad6.mp3","muscles.":"audio/w_d5a93edd4ad6.mp3","Muscular":"audio/w_4a5b965438a9.mp3","muscular":"audio/w_70d6861c75b3.mp3","name":"audio/w_167955c77bf1.mp3","Name":"audio/w_8fdc1f6a8701.mp3","named":"audio/w_2a27c2ab9730.mp3","Narrower,":"audio/w_6773833d870e.mp3","nasal":"audio/w_a12becb2305a.mp3","nasolacrimal":"audio/w_7ea5611951c9.mp3","nerve":"audio/w_42d7c42e4077.mp3","nerve.":"audio/w_42d7c42e4077.mp3","nerves.":"audio/w_bd944f8f1cd6.mp3","next":"audio/w_a4ff4b4da2d5.mp3","nodes.":"audio/w_7e2da74252fe.mp3","not":"audio/w_29af7267b101.mp3","Nuchal":"audio/w_863cfabfea84.mp3","Nucleus":"audio/w_cc2c570f0d26.mp3","oblique":"audio/w_3082c60f5f26.mp3","of":"audio/w_b689cc12aef6.mp3","of?":"audio/w_b689cc12aef6.mp3","on":"audio/w_f9f6b783a30e.mp3","On":"audio/w_e5d0d7a00d91.mp3","one":"audio/w_25e4b04dc4c2.mp3","open":"audio/w_55c06b35b861.mp3","opening":"audio/w_8f153100f2e7.mp3","opening.":"audio/w_8f153100f2e7.mp3","openings":"audio/w_cefec9bd7c1e.mp3","opens":"audio/w_d1a5993a6fb4.mp3","order.":"audio/w_823a6c70c3b4.mp3","oriented":"audio/w_3f4e89389053.mp3","oriented?":"audio/w_3f4e89389053.mp3","origin":"audio/w_d82980f9b937.mp3","originate":"audio/w_9207d04d2428.mp3","palpable?":"audio/w_0df06e69087e.mp3","paranasal":"audio/w_81d19dc84870.mp3","parietal":"audio/w_c8a79e90ede3.mp3","part":"audio/w_a7b6a9829259.mp3","part,":"audio/w_a7b6a9829259.mp3","part;":"audio/w_a7b6a9829259.mp3","participate":"audio/w_f8883058be00.mp3","parts":"audio/w_a940f886fb17.mp3","parts.":"audio/w_a940f886fb17.mp3","pass":"audio/w_3cef227044f0.mp3","pathways":"audio/w_5c39c2b82e36.mp3","pectoralis":"audio/w_778601c0a2d7.mp3","peribronchovascular":"audio/w_e19734bbabe1.mp3","plane":"audio/w_609019123aa0.mp3","plane.":"audio/w_609019123aa0.mp3","pleura":"audio/w_5e91f6331081.mp3","pleura.":"audio/w_5e91f6331081.mp3","pleural":"audio/w_626cd6844ffb.mp3","plexuses,":"audio/w_8a3bd652de4f.mp3","posterior":"audio/w_68ef13f6285b.mp3","Posterior":"audio/w_80d6e42fea5d.mp3","present":"audio/w_f70b34c31bac.mp3","process":"audio/w_d89a802c0277.mp3","process,":"audio/w_d89a802c0277.mp3","process.":"audio/w_d89a802c0277.mp3","processes":"audio/w_d4b85ed07c3d.mp3","prominence":"audio/w_29c8fec2a97b.mp3","prominence?":"audio/w_29c8fec2a97b.mp3","prominens).":"audio/w_180dc35d2209.mp3","pulmonary":"audio/w_c6ef8ea59962.mp3","Pulmonary":"audio/w_0e93689ce5ee.mp3","pulposus.":"audio/w_d7a7f6384656.mp3","Quadrangular":"audio/w_f43252a98f3d.mp3","reason":"audio/w_0bba708adbe8.mp3","recess.":"audio/w_0b99a7e04df2.mp3","recesses.":"audio/w_1ba9b0d04c5d.mp3","Recurrent":"audio/w_cf0ca5dede05.mp3","relation":"audio/w_ddbc85143416.mp3","resectable":"audio/w_25293354f433.mp3","respiratory":"audio/w_287c8964d072.mp3","retains":"audio/w_76fc0159d8c6.mp3","rib":"audio/w_959b3522629b.mp3","rib.":"audio/w_959b3522629b.mp3","rib?":"audio/w_959b3522629b.mp3","ribs":"audio/w_095e6cdc34b4.mp3","ribs?":"audio/w_095e6cdc34b4.mp3","Right":"audio/w_a56837859a01.mp3","right":"audio/w_2029a6b44746.mp3","rima":"audio/w_35c53a787ec5.mp3","root":"audio/w_5aacf9f9b8d9.mp3","root.":"audio/w_5aacf9f9b8d9.mp3","rotational":"audio/w_f4a0912f7ee7.mp3","rudiment":"audio/w_edfc9576ac5d.mp3","rudiments":"audio/w_05484eb19725.mp3","sacral":"audio/w_6bebdd9c9a56.mp3","sacral,":"audio/w_6bebdd9c9a56.mp3","sacrum":"audio/w_e20f3ab8caa1.mp3","sacrum?":"audio/w_e20f3ab8caa1.mp3","sacs,":"audio/w_5e8afb0683b1.mp3","sagittal":"audio/w_11d2a28a9cfa.mp3","scalenes,":"audio/w_30a1c016072d.mp3","section":"audio/w_3cc8b8b648e3.mp3","segment.":"audio/w_8739f91c71e9.mp3","segments":"audio/w_abe34724eb01.mp3","serratus":"audio/w_c41cb2dc8cb8.mp3","shorter,":"audio/w_3f7b24c0aa8b.mp3","side":"audio/w_8adce3cf0696.mp3","side.":"audio/w_8adce3cf0696.mp3","sinus":"audio/w_30445446f95f.mp3","sinuses.":"audio/w_25ad4af2f9c6.mp3","six":"audio/w_fb8b5c745932.mp3","smallest":"audio/w_4286bf70a66c.mp3","space":"audio/w_f3ad6ef25ecd.mp3","space?":"audio/w_f3ad6ef25ecd.mp3","special":"audio/w_d6bc36d7dc0c.mp3","sphenoethmoidal":"audio/w_22ea69085423.mp3","sphenoidal":"audio/w_9c2f89492b23.mp3","spinae":"audio/w_9c8b11c40c18.mp3","spinous":"audio/w_7ddcaef3081c.mp3","sternal":"audio/w_f5c32925ff37.mp3","Sternocleidomastoid,":"audio/w_16a19eb1bf14.mp3","sternocostal":"audio/w_7c193dffd3e2.mp3","sternum":"audio/w_d76ca5ed4eb2.mp3","sternum?":"audio/w_d76ca5ed4eb2.mp3","structures":"audio/w_997f8c7f6630.mp3","subclavian":"audio/w_5347bdb0b70f.mp3","subdivision":"audio/w_46655cf62a48.mp3","Subpleural":"audio/w_391981232b9b.mp3","superior":"audio/w_bacc9c6d9275.mp3","Superior":"audio/w_dcf8e57ac69a.mp3","supero-inferior":"audio/w_237d314d71d8.mp3","supplies":"audio/w_a0734282f0ad.mp3","surface":"audio/w_5df524fba46b.mp3","surfaces":"audio/w_9ac5b5a615ec.mp3","surgically":"audio/w_091d3fc46373.mp3","sympathetic":"audio/w_5625a45aa6db.mp3","synarthrosis":"audio/w_762e9f0bc077.mp3","syndesmosis":"audio/w_ec435a4bc644.mp3","Synostosis.":"audio/w_5629e3662cb7.mp3","synovial":"audio/w_7623949f50dc.mp3","system.":"audio/w_48f9e61fffa1.mp3","T4/T5.":"audio/w_c40cff5e355f.mp3","Ten":"audio/w_371f521e3d7c.mp3","tendon":"audio/w_3a841dbd0a9c.mp3","tendon.":"audio/w_3a841dbd0a9c.mp3","that":"audio/w_d6808e5d571b.mp3","the":"audio/w_3449ba080197.mp3","The":"audio/w_e6d7e499ab48.mp3","Thoracic":"audio/w_0e983cfdbeab.mp3","thoracic":"audio/w_85e4a381f7d7.mp3","thoracic,":"audio/w_85e4a381f7d7.mp3","those":"audio/w_b46490dec07c.mp3","three":"audio/w_d45897f2e16e.mp3","through":"audio/w_49b8881b1b6d.mp3","through?":"audio/w_49b8881b1b6d.mp3","Thymus,":"audio/w_72e01134300b.mp3","thyroarytenoid.":"audio/w_625e42c438d9.mp3","thyroid":"audio/w_1b45117a7148.mp3","Thyroid,":"audio/w_22e83c3dcd57.mp3","tips":"audio/w_23219f08e85c.mp3","to":"audio/w_7c508f6fd1e9.mp3","to?":"audio/w_7c508f6fd1e9.mp3","topographic":"audio/w_7c885a1eb6d6.mp3","torsion":"audio/w_6e055667dd24.mp3","trachea,":"audio/w_fff7930b1add.mp3","tracheal":"audio/w_c1ec5c4f7c88.mp3","transthoracic":"audio/w_87a18caf1fe5.mp3","Transverse":"audio/w_af940c331cff.mp3","transverse":"audio/w_4ea848427200.mp3","triticeous":"audio/w_ac7a9ffe42be.mp3","True":"audio/w_95098aa6d43f.mp3","trunks).":"audio/w_0d6d03c93b30.mp3","Two":"audio/w_40f2e4cd7a1e.mp3","two":"audio/w_a6cf6983b68d.mp3","type":"audio/w_784dc956708e.mp3","up":"audio/w_26f01110e349.mp3","Vagus":"audio/w_70a60232901f.mp3","vagus":"audio/w_3194e6d0ac90.mp3","vein":"audio/w_0e14fdf2babe.mp3","vein.":"audio/w_0e14fdf2babe.mp3","veins":"audio/w_8099e9c6abf5.mp3","veins),":"audio/w_8099e9c6abf5.mp3","veins,":"audio/w_8099e9c6abf5.mp3","veins.":"audio/w_8099e9c6abf5.mp3","vena":"audio/w_987bef9ae1d7.mp3","venous":"audio/w_de0ebb035e23.mp3","vertebra":"audio/w_9808fcc97dfe.mp3","vertebrae":"audio/w_c66a8c379997.mp3","vertebrae.":"audio/w_c66a8c379997.mp3","vertebrae?":"audio/w_c66a8c379997.mp3","vertebral":"audio/w_5eeb9413d280.mp3","vertical;":"audio/w_e9ea517a9241.mp3","vessels":"audio/w_bf4ab3d84171.mp3","Vestibule,":"audio/w_ded9e46fbfbf.mp3","viscera":"audio/w_cdf9169f3817.mp3","vocal":"audio/w_86c4c0359c8f.mp3","Vocal":"audio/w_8ed28210ce11.mp3","vocalis":"audio/w_f81c2548ff74.mp3","wall.":"audio/w_9757a1bf3c76.mp3","What":"audio/w_13e520f2c3a3.mp3","what":"audio/w_a71812761eb3.mp3","Where":"audio/w_772b53b9acbc.mp3","Which":"audio/w_b6382df82e1c.mp3","which":"audio/w_99543dd16139.mp3","why?":"audio/w_ee618b896db0.mp3","Wider,":"audio/w_384e79719eb2.mp3","with":"audio/w_8eccd6b7594e.mp3","xiphoid":"audio/w_703758f35f84.mp3","Xiphoid":"audio/w_0103e71221ca.mp3","Zygapophyseal":"audio/w_e5881fdbaeee.mp3","一":"audio/w_2f940f7653e0.mp3","三":"audio/w_01a807f187e8.mp3","上":"audio/w_3dae91b74e79.mp3","下":"audio/w_3802403e7731.mp3","不":"audio/w_4a7f08f07f09.mp3","与":"audio/w_cfa3ab5f07e6.mp3","丛":"audio/w_a8d382717fe5.mp3","两":"audio/w_1b1898b195ba.mp3","个":"audio/w_5c1995b648fe.mp3","中":"audio/w_1f56f63fedb5.mp3","为":"audio/w_02895adb264a.mp3","主":"audio/w_a624665a313b.mp3","么":"audio/w_7a6d4171a4cb.mp3","义":"audio/w_1bddcdd034e8.mp3","之":"audio/w_edcf9b188531.mp3","乳":"audio/w_74781b17e897.mp3","于":"audio/w_cf2a54eea854.mp3","五":"audio/w_542b9b7a8059.mp3","些":"audio/w_a13b0e15c794.mp3","交":"audio/w_eeb0006f1d50.mp3","什":"audio/w_a2cd591835a8.mp3","从":"audio/w_1ebf9027355b.mp3","以":"audio/w_34ce2a1fc313.mp3","会":"audio/w_a7679b3b94c8.mp3","位":"audio/w_f2aba119ffa2.mp3","体":"audio/w_76e08ec4c3e6.mp3","何":"audio/w_0ea37d6458fd.mp3","侧":"audio/w_1fdb4f8ed87a.mp3","假":"audio/w_786b426ae59a.mp3","先":"audio/w_71980d774ab4.mp3","入":"audio/w_0d857b9f4ee6.mp3","共":"audio/w_5bea9b2860c1.mp3","关":"audio/w_d5a2892a16d7.mp3","其":"audio/w_d501b0accb9b.mp3","内":"audio/w_970f543b3d13.mp3","冠":"audio/w_ece74a50cbc7.mp3","几":"audio/w_f4457053f056.mp3","凸":"audio/w_4025686c0277.mp3","凹":"audio/w_ae3ba52715e3.mp3","出":"audio/w_c4ce7353677c.mp3","分":"audio/w_7d7336115d23.mp3","切":"audio/w_7cfd315c0bc5.mp3","列":"audio/w_b1d95862f968.mp3","初":"audio/w_57f5ee71522b.mp3","到":"audio/w_fdade1c2ee4e.mp3","前":"audio/w_6344cd691b8e.mp3","剑":"audio/w_d79f34860c0b.mp3","功":"audio/w_f1c24adbac79.mp3","动":"audio/w_67de3dd03f73.mp3","助":"audio/w_322cddd25698.mp3","包":"audio/w_c92cbc3256e6.mp3","单":"audio/w_1b6c1b9d0044.mp3","厌":"audio/w_72f01c216cda.mp3","参":"audio/w_285f57053545.mp3","及":"audio/w_d5f4df3378f1.mp3","双":"audio/w_abf30b3672c5.mp3","口":"audio/w_061999cba87e.mp3","叫":"audio/w_26ba9f840d21.mp3","可":"audio/w_7f141927a9b1.mp3","右":"audio/w_2923638481bf.mp3","叶":"audio/w_80fc92fe3be8.mp3","各":"audio/w_115ef168bb83.mp3","合":"audio/w_f8046a74562a.mp3","同":"audio/w_9327a422a558.mp3","名":"audio/w_0ef3bd437230.mp3","后":"audio/w_aa82a831ac53.mp3","含":"audio/w_029f6104c380.mp3","吸":"audio/w_704083a4945b.mp3","呈":"audio/w_edce4856d132.mp3","周":"audio/w_5e568600e3f9.mp3","呼":"audio/w_bc23075ccbc5.mp3","命":"audio/w_a54d79676250.mp3","和":"audio/w_e1577e2bf847.mp3","哪":"audio/w_fdee331e6754.mp3","喉":"audio/w_ed3618a215c4.mp3","器":"audio/w_008b34788307.mp3","囊":"audio/w_a5dbe0015878.mp3","回":"audio/w_4de6b2bc8483.mp3","围":"audio/w_98bdaffa0f16.mp3","固":"audio/w_c2042bbb333e.mp3","圆":"audio/w_4ea57d1cd25d.mp3","在":"audio/w_bfdd321d5f70.mp3","块":"audio/w_ee2d9f31e62e.mp3","垂":"audio/w_ec2ac85a1921.mp3","型":"audio/w_7beff6830a1f.mp3","壁":"audio/w_4461f9de5d94.mp3","声":"audio/w_b253f1db80ef.mp3","处":"audio/w_b716020aa85d.mp3","外":"audio/w_dcebbc678b1d.mp3","多":"audio/w_455b386004e7.mp3","大":"audio/w_ee10bb06c23a.mp3","头":"audio/w_971f873950b2.mp3","奇":"audio/w_8f78c0700c82.mp3","如":"audio/w_9ab8be5ae8cc.mp3","孔":"audio/w_f6d2589a805f.mp3","定":"audio/w_3cb3217a289f.mp3","宽":"audio/w_05b29abbde04.mp3","寰":"audio/w_46c1ce391a9b.mp3","对":"audio/w_e4589f1a3be9.mp3","导":"audio/w_4f1b7fde3508.mp3","封":"audio/w_2606d5190c61.mp3","小":"audio/w_5efa260a2518.mp3","少":"audio/w_e804d2b4bcb7.mp3","尖":"audio/w_146e6cba1326.mp3","尾":"audio/w_fbff8704cf7a.mp3","层":"audio/w_7431a8b1ae6b.mp3","属":"audio/w_df74b64cd389.mp3","嵴":"audio/w_213f1dc12e36.mp3","左":"audio/w_9616e590a9d1.mp3","巴":"audio/w_0b0794fecbfe.mp3","带":"audio/w_c5b347b8ab1f.mp3","干":"audio/w_63f6f8cebfb4.mp3","平":"audio/w_2c30da4e2400.mp3","序":"audio/w_dff996826970.mp3","度":"audio/w_8a5729637c09.mp3","庭":"audio/w_a08e5de92125.mp3","廓":"audio/w_f9c1e359398a.mp3","开":"audio/w_491d8f6fca50.mp3","弓":"audio/w_07524ba1a801.mp3","弯":"audio/w_bf72773c5eba.mp3","弹":"audio/w_ec7375180485.mp3","当":"audio/w_51a1f24c7bf8.mp3","形":"audio/w_57cb63c24057.mp3","心":"audio/w_99a183f140d8.mp3","性":"audio/w_55456a0fac65.mp3","意":"audio/w_c526823e2f30.mp3","感":"audio/w_ff7e54b308f9.mp3","成":"audio/w_2580a42e1a32.mp3","手":"audio/w_c01f75877a69.mp3","扭":"audio/w_00ca31a4e7f5.mp3","把":"audio/w_4944eb288ad5.mp3","括":"audio/w_9b1e11ec754a.mp3","按":"audio/w_cfe98db9948f.mp3","接":"audio/w_1db19d4ad3bb.mp3","支":"audio/w_ba98857599de.mp3","斜":"audio/w_35cf447b3ad7.mp3","方":"audio/w_8e4b7db9d4b3.mp3","旁":"audio/w_e6c517c1f05a.mp3","旋":"audio/w_b8bb732499af.mp3","是":"audio/w_4a7206a1d6bf.mp3","曲":"audio/w_969e500fb93b.mp3","更":"audio/w_dd4378c3b05c.mp3","最":"audio/w_a801ca80be4b.mp3","有":"audio/w_1b6130ca8d55.mp3","术":"audio/w_3216fe4ee1da.mp3","杈":"audio/w_486c554d9c9c.mp3","杓":"audio/w_8b3ad7406a14.mp3","条":"audio/w_ec1a39894399.mp3","构":"audio/w_8118c5909878.mp3","枕":"audio/w_68a99ea87254.mp3","枢":"audio/w_d1c6cd09d41f.mp3","柄":"audio/w_fa2791e10ce0.mp3","柱":"audio/w_ae6a9aaed0cd.mp3","核":"audio/w_e8b71e555d70.mp3","根":"audio/w_9d264707ef83.mp3","棘":"audio/w_da1b12057184.mp3","椎":"audio/w_e2ec9de28a12.mp3","椭":"audio/w_d3e9706b5933.mp3","楔":"audio/w_b877cdad32a3.mp3","横":"audio/w_2680881deb7d.mp3","次":"audio/w_4613f1cb4450.mp3","正":"audio/w_6867cdec8351.mp3","此":"audio/w_7926adc622ef.mp3","段":"audio/w_3734870848d8.mp3","气":"audio/w_ce37ecaa8fa4.mp3","水":"audio/w_6e71dd3b1010.mp3","汇":"audio/w_fe132c62d7be.mp3","沟":"audio/w_5031c87a6627.mp3","没":"audio/w_d3cf65779aca.mp3","注":"audio/w_bf5e25650f4f.mp3","泪":"audio/w_e131674b024f.mp3","流":"audio/w_bda74643c699.mp3","浮":"audio/w_4c0161f04bd5.mp3","淋":"audio/w_cddaa71ce137.mp3","滑":"audio/w_fe412aac57dc.mp3","点":"audio/w_44c12d903465.mp3","特":"audio/w_b8bc8fca6e14.mp3","状":"audio/w_403a6e19a459.mp3","环":"audio/w_d229c1ea833d.mp3","由":"audio/w_dafebe808682.mp3","甲":"audio/w_759ebcb0b452.mp3","界":"audio/w_317a2ea6cf1f.mp3","的":"audio/w_beb821959ae5.mp3","皱":"audio/w_1b49b403e4b1.mp3","盘":"audio/w_23b2cc23bbd6.mp3","直":"audio/w_de4f33837891.mp3","相":"audio/w_f324340b3b1e.mp3","真":"audio/w_c7b6a505a327.mp3","矢":"audio/w_32da497f3906.mp3","短":"audio/w_4919826dfddc.mp3","神":"audio/w_e0c8d10c5443.mp3","种":"audio/w_ff10410e6f33.mp3","称":"audio/w_4f1a84472ac1.mp3","穿":"audio/w_a47c02cb2f2f.mp3","突":"audio/w_96191cc07c2c.mp3","窄":"audio/w_99360a2443ed.mp3","窝":"audio/w_5b784ad27528.mp3","窦":"audio/w_0fe61aabb628.mp3","竖":"audio/w_ebd8ce742c00.mp3","端":"audio/w_cb6109507db4.mp3","第":"audio/w_279606fdaf9a.mp3","筋":"audio/w_841ec89cfcd0.mp3","筛":"audio/w_c86b2d8cdbcb.mp3","管":"audio/w_298b8cc1396d.mp3","类":"audio/w_c6b2f33fb1eb.mp3","粒":"audio/w_346069b3d847.mp3","系":"audio/w_c65fc4930aa2.mp3","纤":"audio/w_ed8d754b5231.mp3","纵":"audio/w_99b3ba530ae3.mp3","组":"audio/w_1f0567f8277f.mp3","经":"audio/w_1c9ceb6e47b3.mp3","结":"audio/w_be58315bade7.mp3","统":"audio/w_fa64cd63419b.mp3","维":"audio/w_9b5f943e81ea.mp3","置":"audio/w_1ddc3d337b75.mp3","联":"audio/w_62d5a2ccbb7d.mp3","肉":"audio/w_b10911ec2319.mp3","肋":"audio/w_6f554d93498c.mp3","肌":"audio/w_487e3e00f906.mp3","肺":"audio/w_8b583d30bbe4.mp3","胸":"audio/w_770e7a4617fb.mp3","能":"audio/w_a0730bf07e54.mp3","脉":"audio/w_80805d6d6231.mp3","脊":"audio/w_e166f46d2939.mp3","脏":"audio/w_80861e259a38.mp3","脚":"audio/w_c4c7667c0556.mp3","腔":"audio/w_4b0aed883f1f.mp3","腰":"audio/w_596669e0ed7f.mp3","腱":"audio/w_503bf5988bc0.mp3","腺":"audio/w_b7527000918d.mp3","膈":"audio/w_5a3ec67c9a44.mp3","膜":"audio/w_9011db430034.mp3","自":"audio/w_a8344105f804.mp3","至":"audio/w_9dbe9c251d2e.mp3","节":"audio/w_3895059cd67d.mp3","蝶":"audio/w_72510b9dcda1.mp3","血":"audio/w_205ca44fed77.mp3","行":"audio/w_c937fd39a6db.mp3","被":"audio/w_1d1ccb6becbb.mp3","裂":"audio/w_2c4b8fa073b1.mp3","襞":"audio/w_8067f1fce59d.mp3","要":"audio/w_0779e6bba0d8.mp3","见":"audio/w_bfa237429a3f.mp3","角":"audio/w_ff3ba1ffe894.mp3","触":"audio/w_50468a657f02.mp3","认":"audio/w_b554202069d5.mp3","说":"audio/w_616fc92955b0.mp3","走":"audio/w_46417b46649c.mp3","起":"audio/w_b232df721743.mp3","路":"audio/w_aa29824b9338.mp3","转":"audio/w_e299ac0948b3.mp3","软":"audio/w_32864d7daeb8.mp3","轴":"audio/w_516ce4cc8463.mp3","辅":"audio/w_caa442c9d5dd.mp3","边":"audio/w_2d3cecabdf5d.mp3","过":"audio/w_dd1330383ab6.mp3","运":"audio/w_6501c8ae2462.mp3","返":"audio/w_0c51283a7485.mp3","进":"audio/w_ad9a6a00725a.mp3","连":"audio/w_3d9642ec091b.mp3","迷":"audio/w_af9f5a184aad.mp3","迹":"audio/w_da502dd062f7.mp3","通":"audio/w_e4aeb84c1d77.mp3","道":"audio/w_8f5cf0eeb65a.mp3","遗":"audio/w_2eccb3e559e5.mp3","邻":"audio/w_d15967da1936.mp3","部":"audio/w_44ffc0f6a8cc.mp3","配":"audio/w_16d1534b2b16.mp3","里":"audio/w_ffce9297896b.mp3","重":"audio/w_5918cf141552.mp3","锁":"audio/w_c6cf49a623de.mp3","锥":"audio/w_71d576d41cbb.mp3","锯":"audio/w_7414e96d5279.mp3","长":"audio/w_80860aff6f54.mp3","门":"audio/w_2d7b0350272d.mp3","闭":"audio/w_3010af92ec16.mp3","间":"audio/w_4f44a3d30a32.mp3","除":"audio/w_2692f6054d67.mp3","隆":"audio/w_403853b69421.mp3","随":"audio/w_9e2f0439bbcb.mp3","隐":"audio/w_c56bd08c11aa.mp3","隔":"audio/w_863905b96c18.mp3","隙":"audio/w_ec5dd1c5cdc8.mp3","静":"audio/w_b5c242e69ebd.mp3","靠":"audio/w_ced78d20f7ab.mp3","面":"audio/w_10639f25a7a4.mp3","韧":"audio/w_fb1ff5f55830.mp3","项":"audio/w_6836f87f507b.mp3","顺":"audio/w_73736f19105a.mp3","颈":"audio/w_644443b5f8ad.mp3","颌":"audio/w_a2e851d1b0d7.mp3","额":"audio/w_108e01727a93.mp3","食":"audio/w_2c8df3d70f89.mp3","骨":"audio/w_bbf93fc75374.mp3","骶":"audio/w_457e7e2ebcad.mp3","髁":"audio/w_a45c89fddaa7.mp3","髂":"audio/w_0cdca6e28a1b.mp3","髓":"audio/w_3f5037fe8d43.mp3","麦":"audio/w_a81a6c2ca60a.mp3","黄":"audio/w_06725dfce352.mp3","黏":"audio/w_6e98841aed6c.mp3","鼻":"audio/w_d83baf956cc7.mp3","齿":"audio/w_395268e725c4.mp3"};
+/* WORD_AUDIO_END */
+
+/* ---------------- 状态 ---------------- */
+let deck = CARDS.slice();
+let idx = 0;
+let flipped = false;
+let secFilter = 0;
+
+const $ = id => document.getElementById(id);
+const cardEl = $("card");
+
+/* ---------------- 渲染 ---------------- */
+function secOf(c){ return SECS.find(s => s.id === c.sec) || SECS[0]; }
+
+function chipLabel(s){
+  if(s.id === 0) return "全部";
+  return s.zh;
+}
+
+function buildChips(){
+  const wrap = $("chips");
+  wrap.innerHTML = "";
+  SECS.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "chip" + (s.id === secFilter ? " on" : "");
+    b.innerHTML = escapeHtml(chipLabel(s)) + " <b>" + (s.id === 0 ? CARDS.length : CARDS.filter(c => c.sec === s.id).length) + "</b>";
+    b.onclick = () => {
+      secFilter = s.id;
+      applyFilter();
+      buildChips();
+    };
+    wrap.appendChild(b);
+  });
+}
+
+function escapeHtml(t){
+  return String(t).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+function applyFilter(){
+  deck = secFilter === 0 ? CARDS.slice() : CARDS.filter(c => c.sec === secFilter);
+  idx = 0; flipped = false;
+  render();
+}
+
+/* 把文本拆成可点击的单词：英文按空格，中文按字 */
+function tokenize(text, lang){
+  const out = [];
+  if(lang === "zh"){
+    for(const ch of String(text)){
+      if(/[\u3400-\u9fff]/.test(ch)) out.push({ w: ch, click: true });
+      else out.push({ w: ch, click: false });
+    }
+  }else{
+    for(const part of String(text).split(/(\s+)/)){
+      if(!part) continue;
+      if(/^\s+$/.test(part)) out.push({ w: part, click: false });
+      else out.push({ w: part, click: true });
+    }
+  }
+  return out;
+}
+
+function renderText(el, text, lang){
+  const frag = document.createDocumentFragment();
+  tokenize(text, lang).forEach(t => {
+    if(t.click){
+      const s = document.createElement("span");
+      s.className = "w";
+      s.dataset.lang = lang;
+      s.textContent = t.w;
+      frag.appendChild(s);
+    }else{
+      frag.appendChild(document.createTextNode(t.w));
+    }
+  });
+  el.textContent = "";
+  el.appendChild(frag);
+}
+
+function render(){
+  if(!deck.length) return;
+  const c = deck[idx];
+  const s = secOf(c);
+  const tag = s.id ? s.short + " · " + s.en : "ALL";
+
+  $("fSec").textContent = tag + " · " + s.zh;
+  $("fNum").textContent = c.n + " / 84";
+  renderText($("fEn"), c.q, "en");
+  renderText($("fZh"), c.qzh, "zh");
+
+  $("bSec").textContent = tag + " · " + s.zh;
+  $("bNum").textContent = c.n + " / 84";
+  renderText($("bEn"), c.a, "en");
+  renderText($("bZh"), c.azh, "zh");
+
+  cardEl.classList.toggle("flipped", flipped);
+  $("flipBtn").textContent = flipped ? "翻回问题" : "翻面看答案";
+
+  $("count").textContent = (idx + 1) + " / " + deck.length;
+  $("bar").style.width = ((idx + 1) / deck.length * 100) + "%";
+
+  // 记住进度
+  try { localStorage.setItem("thoraxCardIdx", String(deck[idx].n)); } catch(e){}
+  preloadCard(c);
+}
+
+/* ---------------- 翻面 / 导航 ---------------- */
+function flip(){ flipped = !flipped; cardEl.classList.toggle("flipped", flipped); $("flipBtn").textContent = flipped ? "翻回问题" : "翻面看答案"; }
+function next(){ stopSpeaking(); flipped = false; idx = (idx + 1) % deck.length; render(); }
+function prev(){ stopSpeaking(); flipped = false; idx = (idx - 1 + deck.length) % deck.length; render(); }
+
+cardEl.addEventListener("click", e => {
+  if(e.target.closest(".tts") || e.target.closest(".w")) return;
+  flip();
+});
+$("flipBtn").onclick = flip;
+$("next").onclick = next;
+$("prev").onclick = prev;
+$("shuffle").onclick = () => {
+  stopSpeaking();
+  const cur = deck[idx];
+  for(let i = deck.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  idx = Math.max(0, deck.indexOf(cur));
+  flipped = false; render(); toast("已随机排序");
+};
+$("reset").onclick = () => {
+  stopSpeaking();
+  deck = secFilter === 0 ? CARDS.slice() : CARDS.filter(c => c.sec === secFilter);
+  idx = 0; flipped = false; render(); toast("已回到第一张");
+};
+
+/* ---------------- 发音：Google 翻译语音（站点内置 mp3，页面内播放，不跳转） ---------------- */
+let audioEl = null;
+let speakToken = 0;
+let lastBtn = null;
+
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+function chunkText(text, max){
+  const parts = [];
+  let rest = String(text).replace(/\s+/g, " ").trim();
+  while(rest.length > max){
+    let cut = -1;
+    const m = rest.slice(0, max + 1).match(/.*[.!?;:,]\s/);
+    if(m) cut = m[0].length;
+    if(cut <= 0){ cut = rest.lastIndexOf(" ", max); }
+    if(cut <= 0) cut = max;
+    parts.push(rest.slice(0, cut).trim());
+    rest = rest.slice(cut).trim();
+  }
+  if(rest) parts.push(rest);
+  return parts.filter(Boolean);
+}
+
+function gttsUrl(text, lang){
+  const tl = lang === "zh" ? "zh-CN" : "en";
+  return "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" + tl + "&q=" + encodeURIComponent(text);
+}
+
+const AUDIO_BASE = "audio/";
+const audioCache = new Map();
+
+function getAudio(url){
+  let a = audioCache.get(url);
+  if(!a){
+    a = new Audio();
+    a.preload = "auto";
+    a.referrerPolicy = "no-referrer";
+    a.src = url;
+    audioCache.set(url, a);
+    if(audioCache.size > 40){
+      const firstKey = audioCache.keys().next().value;
+      if(firstKey !== url){
+        const old = audioCache.get(firstKey);
+        try{ old.pause(); old.removeAttribute("src"); }catch(e){}
+        audioCache.delete(firstKey);
+      }
+    }
+  }
+  return a;
+}
+
+function localUrl(c, slot, lang){
+  if(!c) return null;
+  return AUDIO_BASE + c.n + "_" + (slot === "front" ? "q" : "a") + "_" + lang + ".mp3";
+}
+
+function preloadCard(c){
+  if(!c) return;
+  ["front","back"].forEach(slot => ["en","zh"].forEach(lang => {
+    try{ getAudio(localUrl(c, slot, lang)); }catch(e){}
+  }));
+}
+
+/* 播放一段音频：只对「开始播放」设超时；一旦开播就等它自然结束，
+   长句不会被误判断流（这是之前长句反复读的原因）。 */
+function playUrl(url, opts){
+  opts = opts || {};
+  return new Promise((resolve, reject) => {
+    const a = getAudio(url);
+    try{ a.pause(); }catch(e){}
+    if(a.error){ try{ a.load(); }catch(e){} }
+    try{ a.currentTime = 0; }catch(e){}
+    a.onended = a.onplaying = a.onerror = null;
+
+    let settled = false, started = false, guard = null;
+    const startTimer = setTimeout(() => { if(!started) fail("start-timeout"); }, opts.startTimeout || 6000);
+
+    function clear(){ clearTimeout(startTimer); clearTimeout(guard); }
+    function done(){ if(settled) return; settled = true; clear(); resolve(); }
+    function fail(reason){ if(settled) return; settled = true; clear(); try{ a.pause(); }catch(e){} reject(new Error(String(reason))); }
+
+    a.onplaying = () => {
+      if(settled) return;
+      started = true;
+      clearTimeout(startTimer);
+      const d = a.duration;
+      if(isFinite(d) && d > 0){
+        guard = setTimeout(() => { if(a.currentTime < d - 0.5) fail("stalled"); }, d * 1000 + 12000);
+      }
+    };
+    a.onended = () => done();
+    a.onerror = () => fail("media-error");
+    a.play().then(() => {
+      if(settled) return;
+      started = true;
+      clearTimeout(startTimer);
+    }).catch(err => { if(!started) fail(err && err.name ? err.name : "play-reject"); });
+    audioEl = a;
+  });
+}
+
+function speakWithBrowser(text, lang){
+  return new Promise(resolve => {
+    if(!("speechSynthesis" in window)){ resolve(); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang === "zh" ? "zh-CN" : "en-US";
+    u.rate = 0.95;
+    u.onend = resolve; u.onerror = resolve;
+    window.speechSynthesis.speak(u);
+  });
+}
+
+function textFor(slot, lang){
+  const c = deck[idx];
+  if(!c) return "";
+  if(slot === "front") return lang === "en" ? c.q : c.qzh;
+  return lang === "en" ? c.a : c.azh;
+}
+
+/* 整句/整段朗读：优先本地 mp3 → 在线 Google TTS → 浏览器语音 */
+async function speak(text, lang, btn, slot){
+  stopSpeaking();
+  const my = ++speakToken;
+  if(btn){ lastBtn = btn; btn.classList.add("speaking"); }
+  const c = deck[idx];
+  const chunks = chunkText(text, 180);
+  let usedFallback = false;
+
+  for(let i = 0; i < chunks.length; i++){
+    if(my !== speakToken){ cleanup(); return; }
+    let ok = false;
+    if(c && slot && i === 0){
+      try{ await playUrl(localUrl(c, slot, lang), { startTimeout: 8000 }); ok = true; }catch(e){ ok = false; }
+    }
+    if(!ok && my === speakToken){
+      try{ await playUrl(gttsUrl(chunks[i], lang), { startTimeout: 8000 }); ok = true; }catch(e){ ok = false; }
+    }
+    if(!ok && my === speakToken){
+      usedFallback = true;
+      await speakWithBrowser(chunks[i], lang);
+    }
+  }
+  if(my === speakToken) cleanup();
+  if(usedFallback) toast("已改用浏览器内置语音");
+
+  function cleanup(){
+    if(lastBtn) lastBtn.classList.remove("speaking");
+    lastBtn = null;
+  }
+}
+
+/* 单个单词/汉字发音：优先该词的静态 mp3（零延迟），否则在线 TTS，再否则浏览器语音 */
+async function speakWord(text, lang, span){
+  stopSpeaking();
+  const my = ++speakToken;
+  if(span) span.classList.add("playing");
+  let ok = false;
+  const local = (typeof WORD_AUDIO !== "undefined") ? WORD_AUDIO[text] : null;
+  if(local){
+    try{ await playUrl(local, { startTimeout: 6000 }); ok = true; }catch(e){ ok = false; }
+  }
+  if(!ok && my === speakToken){
+    try{ await playUrl(gttsUrl(text, lang), { startTimeout: 6000 }); ok = true; }catch(e){ ok = false; }
+  }
+  if(!ok && my === speakToken){
+    await speakWithBrowser(text, lang);
+    toast("已改用浏览器内置语音");
+  }
+  if(my === speakToken && span) span.classList.remove("playing");
+}
+
+function stopSpeaking(){
+  speakToken++;
+  if(audioEl){ try{ audioEl.pause(); }catch(e){} audioEl = null; }
+  audioCache.forEach(a => { try{ a.pause(); }catch(e){} });
+  if("speechSynthesis" in window) window.speechSynthesis.cancel();
+  document.querySelectorAll(".tts.speaking").forEach(b => b.classList.remove("speaking"));
+  document.querySelectorAll(".w.playing").forEach(s => s.classList.remove("playing"));
+}
+
+document.querySelectorAll(".tts").forEach(btn => {
+  btn.addEventListener("click", e => {
+    e.stopPropagation();
+    const slot = btn.dataset.slot;
+    const lang = btn.dataset.lang;
+    speak(textFor(slot, lang), lang, btn, slot);
+  });
+});
+
+/* 点击任意单词 / 汉字单独发音 */
+document.addEventListener("click", e => {
+  const span = e.target.closest && e.target.closest(".w");
+  if(!span) return;
+  e.stopPropagation();
+  const lang = span.dataset.lang || "en";
+  const word = span.textContent.trim();
+  if(word) speakWord(word, lang, span);
+});
+
+/* 鼠标划过单词时预取该词音频，点下去即出声 */
+document.addEventListener("pointerover", e => {
+  const span = e.target.closest && e.target.closest(".w");
+  if(!span) return;
+  const u = (typeof WORD_AUDIO !== "undefined") ? WORD_AUDIO[span.textContent.trim()] : null;
+  if(u){ try{ getAudio(u); }catch(err){} }
+});
+
+/* ---------------- 键盘 ---------------- */
+document.addEventListener("keydown", e => {
+  if(e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+  if(e.key === " " || e.key === "Enter"){ e.preventDefault(); flip(); }
+  else if(e.key === "ArrowRight"){ e.preventDefault(); next(); }
+  else if(e.key === "ArrowLeft"){ e.preventDefault(); prev(); }
+  else if(e.key.toLowerCase() === "s"){ $("shuffle").click(); }
+  else if(e.key === "Escape"){ stopSpeaking(); }
+});
+
+/* ---------------- 启动 ---------------- */
+buildChips();
+deck = CARDS.slice();
+try {
+  const saved = parseInt(localStorage.getItem("thoraxCardIdx") || "1", 10);
+  const i = deck.findIndex(c => c.n === saved);
+  if(i > 0) idx = i;
+} catch(e){}
+render();
+</script>
+</body>
+</html>
