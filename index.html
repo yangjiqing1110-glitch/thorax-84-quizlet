@@ -28,6 +28,8 @@
     font-family:"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
     min-height:100vh;
     -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y:contain;
+    -webkit-tap-highlight-color:transparent;
   }
   .wrap{max-width:1040px;margin:0 auto;padding:22px 18px 34px}
   header.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
@@ -57,16 +59,21 @@
 
   .stage{perspective:2200px;margin-top:6px}
   .card{
-    position:relative;height:clamp(360px,calc(100vh - 436px),540px);
-    transform-style:preserve-3d;transition:transform .55s cubic-bezier(.2,.75,.25,1);
+    position:relative;
+    height:clamp(360px,calc(100vh - 436px),540px);
+    height:clamp(360px,calc(100svh - 436px),540px);
+    transform-style:preserve-3d;transition:transform .42s cubic-bezier(.2,.75,.25,1);
     cursor:pointer;border-radius:var(--radius);
+    touch-action:manipulation;
   }
+  .card.flipping{will-change:transform}
   .card.flipped{transform:rotateY(180deg)}
   .face{
     position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
     background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
     display:flex;flex-direction:column;padding:22px 26px 18px;
     overflow-y:auto;border:1px solid #e6ecf5;
+    -webkit-user-select:none;user-select:none;
   }
   .face.front{border-top:5px solid var(--blue)}
   .face.back{transform:rotateY(180deg);border-top:5px solid var(--teal)}
@@ -138,10 +145,16 @@
   @media (max-width:640px){
     .wrap{padding:18px 12px 48px}
     .face{padding:18px 18px 16px}
-    .card{height:clamp(440px,66vh,560px)}
+    .card{height:clamp(380px,62vh,560px);height:clamp(380px,62svh,560px)}
     .btn span{display:none}
-    .btn{padding:0 14px}
+    .btn{padding:0 14px;height:44px}
     .controls{gap:8px}
+    .hint{font-size:11px}
+  }
+  @media (hover:none){
+    .btn:hover{transform:none;box-shadow:0 2px 6px rgba(19,35,59,.05)}
+    .w:hover{background:transparent;color:inherit}
+    .chip:hover{border-color:var(--line);color:var(--muted)}
   }
 </style>
 </head>
@@ -175,7 +188,7 @@
           <button class="tts" data-lang="en" data-slot="front"><svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>英文发音</button>
           <button class="tts" data-lang="zh" data-slot="front"><svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>中文发音</button>
         </div>
-        <div class="hint">点击卡片翻面 · 点任意单词单独发音</div>
+        <div class="hint">点空白处翻面 · 点单词发音</div>
       </section>
       <section class="face back">
         <div class="meta"><span class="sec-tag" id="bSec"></span><span class="num-tag" id="bNum"></span></div>
@@ -188,7 +201,7 @@
           <button class="tts" data-lang="en" data-slot="back"><svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>英文发音</button>
           <button class="tts" data-lang="zh" data-slot="back"><svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>中文发音</button>
         </div>
-        <div class="hint">点击卡片翻回 · 点任意单词单独发音</div>
+        <div class="hint">点空白处翻回 · 点单词发音</div>
       </section>
     </div>
   </div>
@@ -786,7 +799,7 @@ function render(){
 
   // 记住进度
   try { localStorage.setItem("thoraxCardIdx", String(c.n)); } catch(e){}
-  preloadCard(c);
+  preloadCard(c, flipped);
 }
 
 function renderDone(){
@@ -808,13 +821,27 @@ function renderDone(){
 }
 
 /* ---------------- 翻面 / 导航 ---------------- */
-function flip(){ flipped = !flipped; cardEl.classList.toggle("flipped", flipped); $("flipBtn").textContent = flipped ? "翻回问题" : "翻面看答案"; }
-function next(){ if(!deck.length) return; stopSpeaking(); flipped = false; idx = (idx + 1) % deck.length; render(); }
-function prev(){ if(!deck.length) return; stopSpeaking(); flipped = false; idx = (idx - 1 + deck.length) % deck.length; render(); }
+/* 90ms 节流：连点不会造成连跳、连读 */
+let lastNav = 0;
+function canNav(){ const t = Date.now(); if(t - lastNav < 90) return false; lastNav = t; return true; }
+
+function flip(){
+  if(!canNav()) return;
+  stopSpeaking();
+  flipped = !flipped;
+  cardEl.classList.toggle("flipped", flipped);
+  cardEl.classList.add("flipping");
+  clearTimeout(flip._t);
+  flip._t = setTimeout(() => cardEl.classList.remove("flipping"), 460);
+  $("flipBtn").textContent = flipped ? "翻回问题" : "翻面看答案";
+  preloadCard(deck[idx], flipped);
+}
+function next(){ if(!deck.length || !canNav()) return; stopSpeaking(); flipped = false; idx = (idx + 1) % deck.length; render(); }
+function prev(){ if(!deck.length || !canNav()) return; stopSpeaking(); flipped = false; idx = (idx - 1 + deck.length) % deck.length; render(); }
 
 /* 学会了：移出本轮，记录到本地 */
 function markKnown(){
-  if(!deck.length) return;
+  if(!deck.length || !canNav()) return;
   stopSpeaking();
   const c = deck[idx];
   known.add(c.n); saveKnown();
@@ -827,7 +854,7 @@ function markKnown(){
 
 /* 再来一次：排到本轮最后，稍后再练 */
 function markAgain(){
-  if(!deck.length) return;
+  if(!deck.length || !canNav()) return;
   stopSpeaking();
   const c = deck[idx];
   deck.splice(idx, 1);
@@ -839,9 +866,15 @@ function markAgain(){
 }
 
 cardEl.addEventListener("click", e => {
-  if(e.target.closest(".tts") || e.target.closest(".w")) return;
+  if(e.target.closest(".tts") || e.target.closest(".w") || e.target.closest(".en") || e.target.closest(".zh")) return;
   flip();
 });
+
+/* 点完按钮立即失焦：避免之后按空格/回车时又触发一次按钮 */
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("button");
+  if(b) setTimeout(() => b.blur(), 0);
+}, true);
 $("flipBtn").onclick = flip;
 $("next").onclick = next;
 $("prev").onclick = prev;
@@ -866,7 +899,6 @@ $("reset").onclick = () => {
 };
 
 /* ---------------- 发音：Google 翻译语音（站点内置 mp3，页面内播放，不跳转） ---------------- */
-let audioEl = null;
 let speakToken = 0;
 let lastBtn = null;
 
@@ -900,25 +932,33 @@ function gttsUrl(text, lang){
 }
 
 const AUDIO_BASE = "audio/";
-const audioCache = new Map();
 
-function getAudio(url){
-  let a = audioCache.get(url);
+/* 固定几个播放通道反复使用：避免每次播放都 new Audio() 造成内存增长、
+   缓存淘汰和重复联网请求（这是之前卡顿的主要原因）。 */
+const CHANS = {};
+function chan(name){
+  let a = CHANS[name];
   if(!a){
     a = new Audio();
     a.preload = "auto";
     a.referrerPolicy = "no-referrer";
-    a.src = url;
-    audioCache.set(url, a);
-    if(audioCache.size > 40){
-      const firstKey = audioCache.keys().next().value;
-      if(firstKey !== url){
-        const old = audioCache.get(firstKey);
-        try{ old.pause(); old.removeAttribute("src"); }catch(e){}
-        audioCache.delete(firstKey);
-      }
-    }
+    CHANS[name] = a;
   }
+  return a;
+}
+
+function releaseOthers(name){
+  Object.keys(CHANS).forEach(k => {
+    if(k !== name){ try{ CHANS[k].pause(); }catch(e){} }
+  });
+}
+
+function setSrc(name, url){
+  const a = chan(name);
+  if(a.dataset.src === url) return a;
+  try{ a.pause(); }catch(e){}
+  a.dataset.src = url;
+  a.src = url;
   return a;
 }
 
@@ -927,30 +967,33 @@ function localUrl(c, slot, lang){
   return AUDIO_BASE + c.n + "_" + (slot === "front" ? "q" : "a") + "_" + lang + ".mp3";
 }
 
-function preloadCard(c){
+/* 只预取本卡的英文问句（翻到背面时再预取答案），且延迟 220ms 执行，
+   快速翻卡时自动取消，避免一次性发出大量请求。 */
+let preloadTimer = null;
+function preloadCard(c, isFlipped){
+  clearTimeout(preloadTimer);
   if(!c) return;
-  ["front","back"].forEach(slot => ["en","zh"].forEach(lang => {
-    try{ getAudio(localUrl(c, slot, lang)); }catch(e){}
-  }));
+  preloadTimer = setTimeout(() => {
+    setSrc("qe", localUrl(c, "front", "en"));
+    if(isFlipped) setSrc("ae", localUrl(c, "back", "en"));
+  }, 220);
 }
 
-/* 播放一段音频：只对「开始播放」设超时；一旦开播就等它自然结束，
-   长句不会被误判断流（这是之前长句反复读的原因）。 */
-function playUrl(url, opts){
-  opts = opts || {};
+/* 播放一段音频：只对「开始播放」设超时；一旦开播就等它自然结束。 */
+function play(name, url, opts){
+  const a = setSrc(name, url);
+  releaseOthers(name);
   return new Promise((resolve, reject) => {
-    const a = getAudio(url);
     try{ a.pause(); }catch(e){}
-    if(a.error){ try{ a.load(); }catch(e){} }
     try{ a.currentTime = 0; }catch(e){}
     a.onended = a.onplaying = a.onerror = null;
 
     let settled = false, started = false, guard = null;
-    const startTimer = setTimeout(() => { if(!started) fail("start-timeout"); }, opts.startTimeout || 6000);
+    const startTimer = setTimeout(() => { if(!started) fail("start-timeout"); }, (opts && opts.startTimeout) || 6000);
 
     function clear(){ clearTimeout(startTimer); clearTimeout(guard); }
     function done(){ if(settled) return; settled = true; clear(); resolve(); }
-    function fail(reason){ if(settled) return; settled = true; clear(); try{ a.pause(); }catch(e){} reject(new Error(String(reason))); }
+    function fail(r){ if(settled) return; settled = true; clear(); try{ a.pause(); }catch(e){} reject(new Error(String(r))); }
 
     a.onplaying = () => {
       if(settled) return;
@@ -961,14 +1004,13 @@ function playUrl(url, opts){
         guard = setTimeout(() => { if(a.currentTime < d - 0.5) fail("stalled"); }, d * 1000 + 12000);
       }
     };
-    a.onended = () => done();
+    a.onended = done;
     a.onerror = () => fail("media-error");
     a.play().then(() => {
       if(settled) return;
       started = true;
       clearTimeout(startTimer);
     }).catch(err => { if(!started) fail(err && err.name ? err.name : "play-reject"); });
-    audioEl = a;
   });
 }
 
@@ -997,16 +1039,17 @@ async function speak(text, lang, btn, slot){
   if(btn){ lastBtn = btn; btn.classList.add("speaking"); }
   const c = deck[idx];
   const chunks = chunkText(text, 180);
+  const key = (slot === "front" ? "q" : "a") + (lang === "zh" ? "z" : "e");
   let usedFallback = false;
 
   for(let i = 0; i < chunks.length; i++){
     if(my !== speakToken){ cleanup(); return; }
     let ok = false;
     if(c && slot && i === 0){
-      try{ await playUrl(localUrl(c, slot, lang), { startTimeout: 8000 }); ok = true; }catch(e){ ok = false; }
+      try{ await play(key, localUrl(c, slot, lang), { startTimeout: 8000 }); ok = true; }catch(e){ ok = false; }
     }
     if(!ok && my === speakToken){
-      try{ await playUrl(gttsUrl(chunks[i], lang), { startTimeout: 8000 }); ok = true; }catch(e){ ok = false; }
+      try{ await play(key, gttsUrl(chunks[i], lang), { startTimeout: 8000 }); ok = true; }catch(e){ ok = false; }
     }
     if(!ok && my === speakToken){
       usedFallback = true;
@@ -1022,18 +1065,18 @@ async function speak(text, lang, btn, slot){
   }
 }
 
-/* 单个单词/汉字发音：优先该词的静态 mp3（零延迟），否则在线 TTS，再否则浏览器语音 */
+/* 单个单词/汉字发音：优先该词的静态 mp3，否则在线 TTS，再否则浏览器语音 */
 async function speakWord(text, lang, span){
   stopSpeaking();
   const my = ++speakToken;
   if(span) span.classList.add("playing");
-  let ok = false;
   const local = (typeof WORD_AUDIO !== "undefined") ? WORD_AUDIO[text] : null;
+  let ok = false;
   if(local){
-    try{ await playUrl(local, { startTimeout: 6000 }); ok = true; }catch(e){ ok = false; }
+    try{ await play("w", local, { startTimeout: 6000 }); ok = true; }catch(e){ ok = false; }
   }
   if(!ok && my === speakToken){
-    try{ await playUrl(gttsUrl(text, lang), { startTimeout: 6000 }); ok = true; }catch(e){ ok = false; }
+    try{ await play("w", gttsUrl(text, lang), { startTimeout: 6000 }); ok = true; }catch(e){ ok = false; }
   }
   if(!ok && my === speakToken){
     await speakWithBrowser(text, lang);
@@ -1044,8 +1087,7 @@ async function speakWord(text, lang, span){
 
 function stopSpeaking(){
   speakToken++;
-  if(audioEl){ try{ audioEl.pause(); }catch(e){} audioEl = null; }
-  audioCache.forEach(a => { try{ a.pause(); }catch(e){} });
+  Object.keys(CHANS).forEach(k => { try{ CHANS[k].pause(); }catch(e){} });
   if("speechSynthesis" in window) window.speechSynthesis.cancel();
   document.querySelectorAll(".tts.speaking").forEach(b => b.classList.remove("speaking"));
   document.querySelectorAll(".w.playing").forEach(s => s.classList.remove("playing"));
@@ -1060,7 +1102,14 @@ document.querySelectorAll(".tts").forEach(btn => {
   });
 });
 
-/* 点击任意单词 / 汉字单独发音 */
+/* 点击任意单词 / 汉字单独发音（按下时就开始加载，点击即出声） */
+document.addEventListener("pointerdown", e => {
+  const span = e.target.closest && e.target.closest(".w");
+  if(!span) return;
+  const u = (typeof WORD_AUDIO !== "undefined") ? WORD_AUDIO[span.textContent.trim()] : null;
+  if(u) setSrc("w", u);
+}, { passive: true });
+
 document.addEventListener("click", e => {
   const span = e.target.closest && e.target.closest(".w");
   if(!span) return;
@@ -1070,18 +1119,14 @@ document.addEventListener("click", e => {
   if(word) speakWord(word, lang, span);
 });
 
-/* 鼠标划过单词时预取该词音频，点下去即出声 */
-document.addEventListener("pointerover", e => {
-  const span = e.target.closest && e.target.closest(".w");
-  if(!span) return;
-  const u = (typeof WORD_AUDIO !== "undefined") ? WORD_AUDIO[span.textContent.trim()] : null;
-  if(u){ try{ getAudio(u); }catch(err){} }
-});
-
 /* ---------------- 键盘 ---------------- */
 document.addEventListener("keydown", e => {
   if(e.target && /input|textarea|select/i.test(e.target.tagName)) return;
-  if(e.key === " " || e.key === "Enter"){ e.preventDefault(); flip(); }
+  if(e.key === " " || e.key === "Enter"){
+    e.preventDefault();
+    if(e.target && e.target.tagName === "BUTTON"){ e.target.blur(); return; }
+    flip();
+  }
   else if(e.key === "ArrowRight"){ e.preventDefault(); next(); }
   else if(e.key === "ArrowLeft"){ e.preventDefault(); prev(); }
   else if(e.key === "1"){ markKnown(); }
