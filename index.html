@@ -48,6 +48,8 @@
   .chip b{font-weight:700;color:#93a3bb}
   .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
   .chip.on b{color:#9fb3d1}
+  .chip.done{border-color:#86efac;background:#f0fdf4;color:#15803d}
+  .chip.done b{color:#16a34a}
   .bar-row{display:flex;align-items:center;gap:12px;margin:6px 0 14px}
   .bar{flex:1;height:6px;background:#dce5f2;border-radius:99px;overflow:hidden}
   .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2563eb,#0f766e);border-radius:99px;transition:width .3s ease}
@@ -114,6 +116,14 @@
   .btn:active{transform:none}
   .btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
   .btn.primary:hover{background:#1d3252}
+  .btn.ok{background:#16a34a;border-color:#16a34a;color:#fff;font-weight:700}
+  .btn.ok:hover{background:#15803d;border-color:#15803d}
+  .btn.again{background:#f59e0b;border-color:#f59e0b;color:#fff;font-weight:700}
+  .btn.again:hover{background:#d97706;border-color:#d97706}
+  .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none !important;box-shadow:none !important}
+  .answer-actions{margin-top:10px}
+  .card.done .tts-row{display:none}
+  .card.done .face{border-top-color:#16a34a}
   .btn svg{width:16px;height:16px;fill:currentColor}
   .ghost{background:transparent;border-style:dashed;color:var(--muted)}
   .footer{margin-top:20px;font-size:12px;color:#8a9ab3;line-height:1.8;text-align:center}
@@ -191,15 +201,20 @@
     <button class="btn" id="next" title="下一张 (→)"><span>下一张</span>
       <svg viewBox="0 0 24 24"><path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4L13.2 12z"/></svg>
     </button>
+  </div>
+  <div class="controls answer-actions">
+    <button class="btn ok" id="knowBtn" title="已经学会，移出本轮 (1)">✓ 学会了</button>
+    <button class="btn again" id="againBtn" title="还没记住，稍后再练 (2)">↻ 再来一次</button>
     <button class="btn" id="shuffle" title="随机排序">
       <svg viewBox="0 0 24 24"><path d="M17 3h4v4h-2V6.4l-3.6 3.6-1.4-1.4L17.6 5H17V3zM3 5h4.2l3.1 3.1-1.4 1.4L6.2 6.8H3V5zm14 16h-4v-2h.6l-3.6-3.6 1.4-1.4L15 16.6V15h2v6zM3 19h3.2l8.1-8.1 1.4 1.4L7.2 20.8H3V19z"/></svg><span>随机</span>
     </button>
-    <button class="btn ghost" id="reset" title="回到第一张">
+    <button class="btn ghost" id="reset" title="清空学会标记，从头再来">
       <svg viewBox="0 0 24 24"><path d="M12 5V2L8 6l4 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg><span>重置</span>
     </button>
   </div>
 
   <p class="footer">
+    快捷键：<b>空格</b> 翻面 · <b>←/→</b> 切换 · <b>1</b> 学会了 · <b>2</b> 再来一次 · <b>S</b> 随机 · <b>Esc</b> 停止朗读<br>
     发音为 <b>Google 翻译</b> 语音，已内置为音频文件，点击即播（不跳转页面、不依赖实时接口）；点击任意单词 / 汉字也能单独发音。<br>
     题目源自 <b>03.b_Theoretical questions - Thorax etc.pdf</b>，答案为精简答案＋中文翻译。
   </p>
@@ -649,7 +664,11 @@ const WORD_AUDIO = {"(11–12).":"audio/w_20ccefd17562.mp3","(1–7),":"audio/w_
 /* WORD_AUDIO_END */
 
 /* ---------------- 状态 ---------------- */
-let deck = CARDS.slice();
+const LS_KNOWN = "thoraxKnown";
+let known = new Set();
+try{ (JSON.parse(localStorage.getItem(LS_KNOWN) || "[]") || []).forEach(n => known.add(Number(n))); }catch(e){}
+let baseDeck = CARDS.slice();
+let deck = baseDeck.filter(c => !known.has(c.n));
 let idx = 0;
 let flipped = false;
 let secFilter = 0;
@@ -669,9 +688,12 @@ function buildChips(){
   const wrap = $("chips");
   wrap.innerHTML = "";
   SECS.forEach(s => {
+    const all = s.id === 0 ? CARDS : CARDS.filter(c => c.sec === s.id);
+    const left = all.filter(c => !known.has(c.n)).length;
     const b = document.createElement("button");
-    b.className = "chip" + (s.id === secFilter ? " on" : "");
-    b.innerHTML = escapeHtml(chipLabel(s)) + " <b>" + (s.id === 0 ? CARDS.length : CARDS.filter(c => c.sec === s.id).length) + "</b>";
+    b.className = "chip" + (s.id === secFilter ? " on" : "") + (left === 0 ? " done" : "");
+    b.innerHTML = escapeHtml(chipLabel(s)) + " <b>" + (left === 0 ? "✓" : left) + "</b>";
+    b.title = left === 0 ? "已全部学会" : ("剩余 " + left + " / " + all.length);
     b.onclick = () => {
       secFilter = s.id;
       applyFilter();
@@ -686,10 +708,17 @@ function escapeHtml(t){
 }
 
 function applyFilter(){
-  deck = secFilter === 0 ? CARDS.slice() : CARDS.filter(c => c.sec === secFilter);
+  baseDeck = secFilter === 0 ? CARDS.slice() : CARDS.filter(c => c.sec === secFilter);
+  deck = baseDeck.filter(c => !known.has(c.n));
   idx = 0; flipped = false;
   render();
 }
+
+function saveKnown(){
+  try{ localStorage.setItem(LS_KNOWN, JSON.stringify([...known])); }catch(e){}
+}
+function remainingInSection(){ return baseDeck.filter(c => !known.has(c.n)).length; }
+function knownInSection(){ return baseDeck.length - remainingInSection(); }
 
 /* 把文本拆成可点击的单词：英文按空格，中文按字 */
 function tokenize(text, lang){
@@ -727,7 +756,17 @@ function renderText(el, text, lang){
 }
 
 function render(){
-  if(!deck.length) return;
+  const total = baseDeck.length;
+  const kn = knownInSection();
+  $("count").textContent = "已学会 " + kn + " / " + total + " · 剩余 " + deck.length;
+  $("bar").style.width = (total ? (kn / total * 100) : 0) + "%";
+
+  if(!deck.length){ renderDone(); return; }
+
+  cardEl.classList.remove("done");
+  document.querySelectorAll(".tts-row").forEach(r => { r.style.display = ""; });
+  ["prev","next","flipBtn","knowBtn","againBtn","shuffle"].forEach(id => { const el = $(id); if(el) el.disabled = false; });
+
   const c = deck[idx];
   const s = secOf(c);
   const tag = s.id ? s.short + " · " + s.en : "ALL";
@@ -745,18 +784,59 @@ function render(){
   cardEl.classList.toggle("flipped", flipped);
   $("flipBtn").textContent = flipped ? "翻回问题" : "翻面看答案";
 
-  $("count").textContent = (idx + 1) + " / " + deck.length;
-  $("bar").style.width = ((idx + 1) / deck.length * 100) + "%";
-
   // 记住进度
-  try { localStorage.setItem("thoraxCardIdx", String(deck[idx].n)); } catch(e){}
+  try { localStorage.setItem("thoraxCardIdx", String(c.n)); } catch(e){}
   preloadCard(c);
+}
+
+function renderDone(){
+  cardEl.classList.add("done");
+  cardEl.classList.remove("flipped");
+  flipped = false;
+  $("fSec").textContent = "COMPLETE · 完成";
+  $("fNum").textContent = "✓";
+  $("fEn").textContent = "🎉 这一部分全部学会了！";
+  $("fZh").textContent = "共 " + baseDeck.length + " 张 · 点「重置」清空标记，就能再来一遍。";
+  $("bSec").textContent = "COMPLETE · 完成";
+  $("bNum").textContent = "✓";
+  $("bEn").textContent = "🎉 All cards learned!";
+  $("bZh").textContent = "点「重置」重新开始。";
+  $("count").textContent = "已学会 " + baseDeck.length + " / " + baseDeck.length + " · 完成";
+  $("bar").style.width = "100%";
+  $("flipBtn").textContent = "全部完成";
+  ["prev","next","flipBtn","knowBtn","againBtn","shuffle"].forEach(id => { const el = $(id); if(el) el.disabled = true; });
 }
 
 /* ---------------- 翻面 / 导航 ---------------- */
 function flip(){ flipped = !flipped; cardEl.classList.toggle("flipped", flipped); $("flipBtn").textContent = flipped ? "翻回问题" : "翻面看答案"; }
-function next(){ stopSpeaking(); flipped = false; idx = (idx + 1) % deck.length; render(); }
-function prev(){ stopSpeaking(); flipped = false; idx = (idx - 1 + deck.length) % deck.length; render(); }
+function next(){ if(!deck.length) return; stopSpeaking(); flipped = false; idx = (idx + 1) % deck.length; render(); }
+function prev(){ if(!deck.length) return; stopSpeaking(); flipped = false; idx = (idx - 1 + deck.length) % deck.length; render(); }
+
+/* 学会了：移出本轮，记录到本地 */
+function markKnown(){
+  if(!deck.length) return;
+  stopSpeaking();
+  const c = deck[idx];
+  known.add(c.n); saveKnown();
+  deck.splice(idx, 1);
+  if(idx >= deck.length) idx = 0;
+  flipped = false;
+  buildChips(); render();
+  toast(deck.length ? ("已学会 · 还剩 " + deck.length + " 张") : "全部学会了 🎉");
+}
+
+/* 再来一次：排到本轮最后，稍后再练 */
+function markAgain(){
+  if(!deck.length) return;
+  stopSpeaking();
+  const c = deck[idx];
+  deck.splice(idx, 1);
+  deck.push(c);
+  if(idx >= deck.length) idx = 0;
+  flipped = false;
+  render();
+  toast("已排到最后，稍后再练");
+}
 
 cardEl.addEventListener("click", e => {
   if(e.target.closest(".tts") || e.target.closest(".w")) return;
@@ -765,7 +845,10 @@ cardEl.addEventListener("click", e => {
 $("flipBtn").onclick = flip;
 $("next").onclick = next;
 $("prev").onclick = prev;
+$("knowBtn").onclick = markKnown;
+$("againBtn").onclick = markAgain;
 $("shuffle").onclick = () => {
+  if(!deck.length) return;
   stopSpeaking();
   const cur = deck[idx];
   for(let i = deck.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
@@ -774,8 +857,12 @@ $("shuffle").onclick = () => {
 };
 $("reset").onclick = () => {
   stopSpeaking();
-  deck = secFilter === 0 ? CARDS.slice() : CARDS.filter(c => c.sec === secFilter);
-  idx = 0; flipped = false; render(); toast("已回到第一张");
+  baseDeck.forEach(c => known.delete(c.n));
+  saveKnown();
+  deck = baseDeck.filter(c => !known.has(c.n));
+  idx = 0; flipped = false;
+  buildChips(); render();
+  toast("已清空本部分的学会标记");
 };
 
 /* ---------------- 发音：Google 翻译语音（站点内置 mp3，页面内播放，不跳转） ---------------- */
@@ -997,18 +1084,21 @@ document.addEventListener("keydown", e => {
   if(e.key === " " || e.key === "Enter"){ e.preventDefault(); flip(); }
   else if(e.key === "ArrowRight"){ e.preventDefault(); next(); }
   else if(e.key === "ArrowLeft"){ e.preventDefault(); prev(); }
+  else if(e.key === "1"){ markKnown(); }
+  else if(e.key === "2"){ markAgain(); }
   else if(e.key.toLowerCase() === "s"){ $("shuffle").click(); }
   else if(e.key === "Escape"){ stopSpeaking(); }
 });
 
 /* ---------------- 启动 ---------------- */
-buildChips();
-deck = CARDS.slice();
+baseDeck = CARDS.slice();
+deck = baseDeck.filter(c => !known.has(c.n));
 try {
   const saved = parseInt(localStorage.getItem("thoraxCardIdx") || "1", 10);
   const i = deck.findIndex(c => c.n === saved);
   if(i > 0) idx = i;
 } catch(e){}
+buildChips();
 render();
 </script>
 </body>
